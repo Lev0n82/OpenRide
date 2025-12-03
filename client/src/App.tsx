@@ -4,6 +4,8 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import DriverApplication from "./pages/DriverApplication";
+import RideBooking from "./pages/RideBooking";
 import DeliveryBooking from "./pages/DeliveryBooking";
 import DriverDashboard from "./pages/DriverDashboard";
 import RiderDashboard from "./pages/RiderDashboard";
@@ -16,8 +18,9 @@ import NotFound from "./pages/NotFound";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/delivery-booking" component={DeliveryBooking} />
+      <Route path={"/"} component={Home} />
+      <Route path="/driver/apply" component={DriverApplication} />
+      <Route path="/ride/book" component={RideBooking} />     <Route path="/delivery-booking" component={DeliveryBooking} />
       <Route path="/driver" component={DriverDashboard} />
       <Route path="/rider" component={RiderDashboard} />
       <Route path="/governance" component={Governance} />

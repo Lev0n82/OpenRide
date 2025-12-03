@@ -92,11 +92,40 @@ export const appRouter = router({
     // Apply to become a driver
     applyAsDriver: protectedProcedure
       .input(z.object({
+        // Personal info
+        phone: z.string(),
+        address: z.string(),
+        city: z.string(),
+        province: z.string(),
+        postalCode: z.string(),
+        // License info
         licenseNumber: z.string(),
         licenseExpiry: z.date(),
-        licenseDocumentUrl: z.string(),
-        insuranceDocumentUrl: z.string(),
-        vehicleRegistrationUrl: z.string(),
+        // Insurance info
+        insuranceProvider: z.string(),
+        insurancePolicyNumber: z.string(),
+        insuranceExpiry: z.date(),
+        // Vehicle info
+        vehicleMake: z.string(),
+        vehicleModel: z.string(),
+        vehicleYear: z.number(),
+        vehicleColor: z.string(),
+        licensePlate: z.string(),
+        vehicleCapacity: z.number(),
+        // Pi KYC
+        piKycStatus: z.string(),
+        piUserId: z.string().optional(),
+        // Delivery service
+        offersDelivery: z.boolean().optional(),
+        maxPackageSize: z.enum(['small', 'medium', 'large']).optional(),
+        // Documents
+        documents: z.object({
+          license: z.string(),
+          insurance: z.string(),
+          registration: z.string(),
+          profilePhoto: z.string().optional(),
+          vehiclePhoto: z.string().optional(),
+        }),
       }))
       .mutation(async ({ ctx, input }) => {
         const existing = await getDriverProfileByUserId(ctx.user.id);
@@ -104,15 +133,31 @@ export const appRouter = router({
           throw new TRPCError({ code: 'BAD_REQUEST', message: 'Driver profile already exists' });
         }
 
+        // Create driver profile
         const profileId = await createDriverProfile({
           userId: ctx.user.id,
           licenseNumber: input.licenseNumber,
           licenseExpiry: input.licenseExpiry,
-          licenseDocumentUrl: input.licenseDocumentUrl,
-          insuranceDocumentUrl: input.insuranceDocumentUrl,
-          vehicleRegistrationUrl: input.vehicleRegistrationUrl,
-          piNetworkKycVerified: true, // Assume Pi Network KYC is verified
+          licenseDocumentUrl: input.documents.license,
+          insuranceDocumentUrl: input.documents.insurance,
+          vehicleRegistrationUrl: input.documents.registration,
+          piNetworkKycVerified: input.piKycStatus === 'verified',
           verificationStatus: 'pending',
+          offersDelivery: input.offersDelivery || false,
+          maxPackageSize: input.maxPackageSize,
+        });
+
+        // Create vehicle record
+        await createVehicle({
+          driverId: profileId,
+          make: input.vehicleMake,
+          model: input.vehicleModel,
+          year: input.vehicleYear,
+          color: input.vehicleColor,
+          licensePlate: input.licensePlate,
+          vehicleType: 'sedan' as const, // Default to sedan, can be updated later
+          capacity: input.vehicleCapacity,
+          isActive: true,
         });
 
         return { profileId, success: true };
@@ -383,6 +428,30 @@ export const appRouter = router({
 
       return null;
     }),
+
+    // Cancel a ride
+    cancel: protectedProcedure
+      .input(z.object({ rideId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const ride = await getRideById(input.rideId);
+        if (!ride) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Ride not found' });
+        }
+
+        const profile = await getDriverProfileByUserId(ctx.user.id);
+        
+        // Check authorization
+        if (ride.riderId !== ctx.user.id && (!profile || ride.driverId !== profile.id)) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+        }
+
+        await updateRide(input.rideId, {
+          status: 'cancelled',
+          cancelledAt: new Date(),
+        });
+
+        return { success: true };
+      }),
 
     // Rate a ride
     rate: protectedProcedure
