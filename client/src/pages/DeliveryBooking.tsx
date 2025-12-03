@@ -8,10 +8,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Package, MapPin, User, Phone, FileText } from 'lucide-react';
+import { Package, MapPin, User, Phone, FileText, Truck } from 'lucide-react';
 
 export default function DeliveryBooking() {
   const [, navigate] = useLocation();
+  const searchParams = new URLSearchParams(window.location.search);
+  const serviceType = searchParams.get('type') || 'delivery'; // 'delivery' or 'courier'
+  const isCourier = serviceType === 'courier';
   const [formData, setFormData] = useState({
     pickupAddress: '',
     pickupLat: '',
@@ -57,11 +60,14 @@ export default function DeliveryBooking() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Package className="h-6 w-6" />
-            Request Delivery
+            {isCourier ? <Truck className="h-6 w-6" /> : <Package className="h-6 w-6" />}
+            {isCourier ? 'Book Courier Service' : 'Request Delivery'}
           </CardTitle>
           <CardDescription>
-            Send packages with OpenRide's trusted driver network
+            {isCourier 
+              ? 'Professional courier service for businesses and bulk deliveries'
+              : 'Send packages with OpenRide\'s trusted driver network'
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>

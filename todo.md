@@ -206,3 +206,15 @@
 - [x] Add ride cancellation functionality
 - [ ] Implement ride completion and rating UI
 - [ ] Test complete ride booking flow
+
+
+## Homepage Service Showcase
+
+- [x] Redesign homepage to feature all three services equally
+- [x] Add "Ride with OpenRide" service card with description
+- [x] Add "Deliver with OpenRide" service card for package delivery
+- [x] Add "Courier with OpenRide" service card for courier services
+- [x] Create clear call-to-action buttons for each service
+- [x] Add service comparison or feature highlights
+- [x] Update routing to handle all three service entry points
+- [x] Test user flow from homepage to each service

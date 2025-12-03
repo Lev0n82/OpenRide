@@ -1,214 +1,385 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useLocation } from "wouter";
+import { 
+  Car, 
+  Package, 
+  Truck, 
+  Users, 
+  Shield, 
+  Coins, 
+  Vote, 
+  Star,
+  TrendingDown,
+  Clock,
+  MapPin,
+  CheckCircle2
+} from "lucide-react";
 import { getLoginUrl } from "@/const";
-import { Car, Users, Shield, Coins, Vote, TrendingUp } from "lucide-react";
-import { Link } from "wouter";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        {/* Hero Section */}
-        <div className="container mx-auto px-4 py-16">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              OpenRide
-            </h1>
-            <p className="text-2xl text-gray-700 mb-4">
-              The Future of Decentralized Ridesharing
-            </p>
-            <p className="text-lg text-gray-600 mb-8">
-              Community-owned. Blockchain-powered. Driver-first.
-            </p>
-            <Button size="lg" asChild className="text-lg px-8 py-6">
-              <a href={getLoginUrl()}>Get Started</a>
-            </Button>
-          </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Hero Section */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center mb-12">
+          <Badge variant="secondary" className="mb-4">
+            Decentralized • Community-Owned • Blockchain-Powered
+          </Badge>
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+            Welcome to OpenRide
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            The first truly decentralized rideshare and delivery platform. 
+            Drivers keep 87% of fares. Community governance. Built on Pi Network.
+          </p>
+        </div>
 
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mt-20">
-            <Card>
-              <CardHeader>
-                <Car className="w-12 h-12 text-blue-600 mb-4" />
-                <CardTitle>87% Driver Earnings</CardTitle>
-                <CardDescription>
-                  Drivers keep 87% of fares vs 70-75% on traditional platforms
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Vote className="w-12 h-12 text-purple-600 mb-4" />
-                <CardTitle>DAO Governance</CardTitle>
-                <CardDescription>
-                  RIDE token holders vote on platform decisions and policies
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Shield className="w-12 h-12 text-green-600 mb-4" />
-                <CardTitle>Community Insurance</CardTitle>
-                <CardDescription>
-                  10% of fares fund our own insurance pool for full coverage
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Coins className="w-12 h-12 text-yellow-600 mb-4" />
-                <CardTitle>Earn RIDE Tokens</CardTitle>
-                <CardDescription>
-                  Drivers earn 10 RIDE per ride, riders earn 1 RIDE per ride
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <TrendingUp className="w-12 h-12 text-red-600 mb-4" />
-                <CardTitle>Token Buyback</CardTitle>
-                <CardDescription>
-                  0.5% of fares automatically buy and burn RIDE tokens quarterly
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Users className="w-12 h-12 text-indigo-600 mb-4" />
-                <CardTitle>Pi Network Integration</CardTitle>
-                <CardDescription>
-                  Built on Pi blockchain with verified KYC for all users
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-
-          {/* How It Works */}
-          <div className="mt-20 text-center">
-            <h2 className="text-4xl font-bold mb-12">How It Works</h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div>
-                <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-blue-600">1</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Sign Up</h3>
-                <p className="text-gray-600">
-                  Create your account with Manus OAuth and choose to be a driver or rider
-                </p>
+        {/* Main Services Grid */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {/* Ride Service */}
+          <Card className="hover:shadow-xl transition-shadow border-2 hover:border-blue-500">
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <Car className="h-12 w-12 text-blue-600" />
+                <Badge variant="default">Most Popular</Badge>
               </div>
-              <div>
-                <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-purple-600">2</span>
+              <CardTitle className="text-2xl">Ride with OpenRide</CardTitle>
+              <CardDescription>
+                Get safe, affordable rides from verified drivers in your community
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>87% cheaper than Uber/Lyft</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Get Verified</h3>
-                <p className="text-gray-600">
-                  Drivers complete Pi Network KYC and upload required documents
-                </p>
-              </div>
-              <div>
-                <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl font-bold text-green-600">3</span>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Earn RIDE tokens on every trip</span>
                 </div>
-                <h3 className="text-xl font-semibold mb-2">Start Riding</h3>
-                <p className="text-gray-600">
-                  Request or accept rides, earn RIDE tokens, and participate in governance
-                </p>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Real-time tracking & safety features</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Pay with Pi cryptocurrency</span>
+                </div>
               </div>
+              
+              <div className="pt-4">
+                {isAuthenticated ? (
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    onClick={() => setLocation('/ride/book')}
+                  >
+                    <Car className="mr-2 h-5 w-5" />
+                    Book a Ride Now
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    onClick={() => window.location.href = getLoginUrl()}
+                  >
+                    Sign In to Ride
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Delivery Service */}
+          <Card className="hover:shadow-xl transition-shadow border-2 hover:border-green-500">
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <Package className="h-12 w-12 text-green-600" />
+                <Badge variant="secondary">New</Badge>
+              </div>
+              <CardTitle className="text-2xl">Deliver with OpenRide</CardTitle>
+              <CardDescription>
+                Send packages locally with fast, affordable delivery service
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Same-day local delivery</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Real-time package tracking</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Proof of delivery with photos</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Earn RIDE tokens per delivery</span>
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                {isAuthenticated ? (
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700" 
+                    size="lg"
+                    onClick={() => setLocation('/delivery-booking')}
+                  >
+                    <Package className="mr-2 h-5 w-5" />
+                    Send a Package
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full bg-green-600 hover:bg-green-700" 
+                    size="lg"
+                    onClick={() => window.location.href = getLoginUrl()}
+                  >
+                    Sign In to Deliver
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Courier Service */}
+          <Card className="hover:shadow-xl transition-shadow border-2 hover:border-purple-500">
+            <CardHeader>
+              <div className="flex items-center justify-between mb-2">
+                <Truck className="h-12 w-12 text-purple-600" />
+                <Badge variant="secondary">Pro</Badge>
+              </div>
+              <CardTitle className="text-2xl">Courier with OpenRide</CardTitle>
+              <CardDescription>
+                Professional courier services for businesses and bulk deliveries
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Multi-stop route optimization</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Scheduled pickups & deliveries</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Business accounts & invoicing</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span>Priority driver matching</span>
+                </div>
+              </div>
+              
+              <div className="pt-4">
+                {isAuthenticated ? (
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700" 
+                    size="lg"
+                    onClick={() => setLocation('/delivery-booking?type=courier')}
+                  >
+                    <Truck className="mr-2 h-5 w-5" />
+                    Book Courier Service
+                  </Button>
+                ) : (
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700" 
+                    size="lg"
+                    onClick={() => window.location.href = getLoginUrl()}
+                  >
+                    Sign In for Courier
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Driver CTA */}
+        <Card className="mb-12 bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-0">
+          <CardContent className="py-8">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h2 className="text-3xl font-bold mb-4">Become a Driver</h2>
+                <p className="text-lg mb-6 text-blue-50">
+                  Earn 87% of every fare. Set your own schedule. Get paid in Pi cryptocurrency. 
+                  Join the decentralized revolution.
+                </p>
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <TrendingDown className="h-5 w-5" />
+                    <span className="text-sm">Only 13% fees</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    <span className="text-sm">Flexible hours</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Coins className="h-5 w-5" />
+                    <span className="text-sm">Earn RIDE tokens</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    <span className="text-sm">Full insurance</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-4">
+                <Button 
+                  size="lg" 
+                  variant="secondary"
+                  className="w-full text-lg"
+                  onClick={() => isAuthenticated ? setLocation('/driver/apply') : window.location.href = getLoginUrl()}
+                >
+                  <Car className="mr-2 h-5 w-5" />
+                  Apply to Drive
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full text-lg bg-white/10 hover:bg-white/20 text-white border-white/30"
+                  onClick={() => isAuthenticated ? setLocation('/driver/apply?service=delivery') : window.location.href = getLoginUrl()}
+                >
+                  <Package className="mr-2 h-5 w-5" />
+                  Apply for Delivery
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full text-lg bg-white/10 hover:bg-white/20 text-white border-white/30"
+                  onClick={() => isAuthenticated ? setLocation('/driver/apply?service=courier') : window.location.href = getLoginUrl()}
+                >
+                  <Truck className="mr-2 h-5 w-5" />
+                  Apply for Courier
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Platform Features */}
+        <div className="grid md:grid-cols-4 gap-6 mb-12">
+          <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation('/governance')}>
+            <CardHeader>
+              <Vote className="h-10 w-10 mx-auto mb-2 text-blue-600" />
+              <CardTitle className="text-lg">DAO Governance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                Vote on platform decisions. Community-owned and operated.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation('/insurance')}>
+            <CardHeader>
+              <Shield className="h-10 w-10 mx-auto mb-2 text-green-600" />
+              <CardTitle className="text-lg">Insurance Pool</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                10% of fees fund our community insurance pool for all drivers.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer" onClick={() => setLocation('/tokens')}>
+            <CardHeader>
+              <Coins className="h-10 w-10 mx-auto mb-2 text-yellow-600" />
+              <CardTitle className="text-lg">RIDE Tokens</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                Earn governance tokens. Automatic buyback & burn mechanism.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer" onClick={() => isAuthenticated ? setLocation('/admin') : window.location.href = getLoginUrl()}>
+            <CardHeader>
+              <Users className="h-10 w-10 mx-auto mb-2 text-purple-600" />
+              <CardTitle className="text-lg">Admin Panel</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-gray-600">
+                Manage drivers, verify applications, review claims.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Stats Section */}
+        <div className="bg-white rounded-lg shadow-lg p-8 mb-12">
+          <h2 className="text-2xl font-bold text-center mb-8">Why Choose OpenRide?</h2>
+          <div className="grid md:grid-cols-4 gap-8 text-center">
+            <div>
+              <div className="text-4xl font-bold text-blue-600 mb-2">87%</div>
+              <div className="text-gray-600">Driver Earnings</div>
+              <div className="text-sm text-gray-500 mt-1">vs 70-75% on Uber/Lyft</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-green-600 mb-2">13%</div>
+              <div className="text-gray-600">Platform Fees</div>
+              <div className="text-sm text-gray-500 mt-1">vs 25-30% on competitors</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-purple-600 mb-2">100%</div>
+              <div className="text-gray-600">Community Owned</div>
+              <div className="text-sm text-gray-500 mt-1">DAO governance model</div>
+            </div>
+            <div>
+              <div className="text-4xl font-bold text-yellow-600 mb-2">0.5%</div>
+              <div className="text-gray-600">Token Buyback</div>
+              <div className="text-sm text-gray-500 mt-1">Automatic quarterly burns</div>
             </div>
           </div>
         </div>
-      </div>
-    );
-  }
 
-  // Authenticated user - show dashboard links
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-12">
+        {/* How It Works */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Welcome to OpenRide, {user?.name}!</h1>
-          <p className="text-xl text-gray-600">Choose your role to get started</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <Car className="w-16 h-16 text-blue-600 mb-4" />
-              <CardTitle className="text-2xl">Drive with OpenRide</CardTitle>
-              <CardDescription className="text-base">
-                Earn 87% of fares plus RIDE tokens. Set your own schedule.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full" size="lg">
-                <Link href="/driver">Driver Dashboard</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <Users className="w-16 h-16 text-purple-600 mb-4" />
-              <CardTitle className="text-2xl">Ride with OpenRide</CardTitle>
-              <CardDescription className="text-base">
-                Get safe, affordable rides. Earn RIDE tokens. Vote on governance.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full" size="lg">
-                <Link href="/rider">Rider Dashboard</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Links */}
-        <div className="mt-12 grid md:grid-cols-4 gap-4 max-w-4xl mx-auto">
-          <Button asChild variant="outline" className="h-auto py-4">
-            <Link href="/governance">
-              <div className="text-center">
-                <Vote className="w-8 h-8 mx-auto mb-2" />
-                <div>DAO Governance</div>
+          <h2 className="text-3xl font-bold mb-8">How OpenRide Works</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div>
+              <div className="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <MapPin className="h-8 w-8 text-blue-600" />
               </div>
-            </Link>
-          </Button>
-
-          <Button asChild variant="outline" className="h-auto py-4">
-            <Link href="/insurance">
-              <div className="text-center">
-                <Shield className="w-8 h-8 mx-auto mb-2" />
-                <div>Insurance Pool</div>
+              <h3 className="font-semibold text-lg mb-2">1. Request Service</h3>
+              <p className="text-gray-600">
+                Enter pickup and destination. Choose ride, delivery, or courier service.
+              </p>
+            </div>
+            <div>
+              <div className="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Users className="h-8 w-8 text-green-600" />
               </div>
-            </Link>
-          </Button>
-
-          <Button asChild variant="outline" className="h-auto py-4">
-            <Link href="/tokens">
-              <div className="text-center">
-                <Coins className="w-8 h-8 mx-auto mb-2" />
-                <div>My Tokens</div>
+              <h3 className="font-semibold text-lg mb-2">2. Get Matched</h3>
+              <p className="text-gray-600">
+                Our AI matches you with the best-rated driver nearby in seconds.
+              </p>
+            </div>
+            <div>
+              <div className="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <Star className="h-8 w-8 text-purple-600" />
               </div>
-            </Link>
-          </Button>
-
-          {user?.role === 'admin' && (
-            <Button asChild variant="outline" className="h-auto py-4">
-              <Link href="/admin">
-                <div className="text-center">
-                  <Shield className="w-8 h-8 mx-auto mb-2" />
-                  <div>Admin Panel</div>
-                </div>
-              </Link>
-            </Button>
-          )}
+              <h3 className="font-semibold text-lg mb-2">3. Earn & Rate</h3>
+              <p className="text-gray-600">
+                Complete your trip, earn RIDE tokens, and rate your experience.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
