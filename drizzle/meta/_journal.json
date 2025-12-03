@@ -15,6 +15,20 @@
       "when": 1764733322177,
       "tag": "0001_mature_black_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1764736304691,
+      "tag": "0002_tiny_scream",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1764736546006,
+      "tag": "0003_amusing_longshot",
+      "breakpoints": true
     }
   ]
 }

@@ -43,7 +43,12 @@ export const driverProfiles = mysqlTable("driverProfiles", {
   verificationStatus: mysqlEnum("verificationStatus", ["pending", "approved", "rejected"]).default("pending").notNull(),
   verificationNotes: text("verificationNotes"),
   isAvailable: boolean("isAvailable").default(false).notNull(),
+  // Delivery & Courier Service
+  offersDelivery: boolean("offersDelivery").default(false).notNull(),
+  maxPackageWeight: int("maxPackageWeight").default(20), // kg
+  maxPackageSize: mysqlEnum("maxPackageSize", ["small", "medium", "large", "xlarge"]).default("medium"),
   totalRides: int("totalRides").default(0).notNull(),
+  totalDeliveries: int("totalDeliveries").default(0).notNull(),
   averageRating: int("averageRating").default(0).notNull(), // stored as rating * 100 (e.g., 450 = 4.50)
   totalEarnings: int("totalEarnings").default(0).notNull(), // in cents
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -85,6 +90,8 @@ export const rides = mysqlTable("rides", {
   riderId: int("riderId").notNull().references(() => users.id),
   driverId: int("driverId").references(() => driverProfiles.id),
   vehicleId: int("vehicleId").references(() => vehicles.id),
+  // Service type
+  serviceType: mysqlEnum("serviceType", ["ride", "delivery"]).default("ride").notNull(),
   status: mysqlEnum("status", [
     "requested",
     "accepted",
@@ -108,6 +115,14 @@ export const rides = mysqlTable("rides", {
   buybackFee: int("buybackFee"), // 0.5% in cents
   driverEarnings: int("driverEarnings"), // 87% in cents
   rideTokensAwarded: int("rideTokensAwarded"), // RIDE tokens given (10 driver + 1 rider)
+  // Delivery-specific fields
+  packageDescription: text("packageDescription"),
+  packageWeight: int("packageWeight"), // in kg
+  packageSize: mysqlEnum("packageSize", ["small", "medium", "large", "xlarge"]),
+  recipientName: varchar("recipientName", { length: 100 }),
+  recipientPhone: varchar("recipientPhone", { length: 20 }),
+  deliveryInstructions: text("deliveryInstructions"),
+  proofOfDeliveryUrl: text("proofOfDeliveryUrl"), // Photo URL
   requestedAt: timestamp("requestedAt").defaultNow().notNull(),
   acceptedAt: timestamp("acceptedAt"),
   startedAt: timestamp("startedAt"),
@@ -269,3 +284,9 @@ export const safetyIncidents = mysqlTable("safetyIncidents", {
 
 export type SafetyIncident = typeof safetyIncidents.$inferSelect;
 export type InsertSafetyIncident = typeof safetyIncidents.$inferInsert;
+
+// ============================================================================
+// ML & ANALYTICS TABLES
+// ============================================================================
+
+export * from './ml-schema';

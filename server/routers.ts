@@ -2,6 +2,8 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { piRouter } from "./piRouters";
+import { deliveryRouter } from "./deliveryRouters";
 import { z } from "zod";
 import {
   createDriverProfile,
@@ -70,6 +72,8 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 export const appRouter = router({
   system: systemRouter,
+  pi: piRouter,
+  delivery: deliveryRouter,
   
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),

@@ -68,3 +68,83 @@
 - [ ] Integration tests for ride flow
 - [ ] DAO voting tests
 - [ ] Initial checkpoint creation
+
+
+## Pi Network SDK Integration
+
+- [x] Install Pi SDK via script tag
+- [x] Configure Pi Network API integration
+- [x] Implement Pi authentication flow
+- [x] Build Pi payment system for ride transactions
+- [x] Create payment approval flow for riders
+- [x] Implement payment completion and verification
+- [x] Create frontend hooks for Pi auth and payments
+- [ ] Integrate Pi KYC verification for driver onboarding
+- [ ] Update ride booking UI to use Pi payments
+- [ ] Test Pi payments end-to-end
+
+
+## Delivery & Courier Services
+
+- [x] Add delivery service opt-in to driver profiles
+- [x] Create delivery request table in database
+- [x] Add package size and weight fields
+- [x] Implement delivery pricing calculator
+- [x] Create delivery booking interface for customers
+- [x] Add delivery tracking and status updates
+- [x] Implement proof of delivery (photo upload)
+- [x] Create delivery history for drivers and customers
+- [ ] Add delivery service toggle in driver dashboard
+- [ ] Update rider dashboard with delivery option
+- [ ] Test delivery features end-to-end
+
+
+## AI & Machine Learning Features
+
+- [ ] Design ML data collection schema (ride patterns, demand heatmaps, pricing history)
+- [ ] Implement demand prediction model using historical ride data
+- [ ] Create driver positioning recommendations (where drivers are needed)
+- [ ] Build dynamic pricing engine based on demand, competition, and time
+- [ ] Implement intelligent driver-rider matching algorithm
+- [ ] Add premium matching (5-star drivers for 5-star riders)
+- [ ] Create surge pricing with competitive caps
+- [ ] Build AI insights dashboard for drivers (best times/locations)
+- [ ] Add predictive analytics for earnings optimization
+- [ ] Implement real-time demand heatmap visualization
+- [ ] Create ML model for fraud detection and safety
+- [ ] Add automated performance recommendations for drivers
+
+
+## Progressive Web App (PWA) Features
+
+- [ ] Create PWA manifest.json with app metadata and icons
+- [ ] Generate app icons for all sizes (192x192, 512x512, etc.)
+- [ ] Implement service worker for offline functionality
+- [ ] Add install prompt for Android and iOS
+- [ ] Configure caching strategy for offline mode
+- [ ] Implement push notification subscription system
+- [ ] Add Web Push API integration for background notifications
+- [ ] Create notification triggers for ride status updates
+- [ ] Add driver positioning alert notifications
+- [ ] Implement governance proposal notifications
+- [ ] Create notification preferences UI
+- [ ] Test PWA installation on Android and iOS
+- [ ] Verify push notifications work when app is closed
+
+
+## Requirements Documentation & Testing
+
+- [x] Document all features with detailed requirements (REQUIREMENTS.md with 180+ acceptance criteria)
+- [x] Define acceptance criteria for each feature
+- [x] Install Playwright for E2E testing
+- [x] Configure Playwright test environment
+- [x] Write integration tests for backend APIs
+- [x] Create E2E tests for user workflows
+- [x] Test driver registration and verification flow
+- [x] Test ride booking and completion flow
+- [x] Test delivery booking and completion flow
+- [x] Test DAO governance voting flow
+- [x] Test insurance claim submission flow
+- [x] Test token transactions and buyback
+- [x] Run all tests and verify passing (27/27 tests passing in 31.3s)
+- [x] Generate test coverage report

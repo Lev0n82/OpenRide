@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
+import { initializePWA } from "./lib/pwa";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,11 @@ const trpcClient = trpc.createClient({
       },
     }),
   ],
+});
+
+// Initialize PWA features
+initializePWA().catch((error) => {
+  console.error('Failed to initialize PWA:', error);
 });
 
 createRoot(document.getElementById("root")!).render(
