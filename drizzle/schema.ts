@@ -290,3 +290,9 @@ export type InsertSafetyIncident = typeof safetyIncidents.$inferInsert;
 // ============================================================================
 
 export * from './ml-schema';
+
+// ============================================================================
+// EXPANSION & MARKET ANALYSIS TABLES
+// ============================================================================
+
+export * from './expansion-schema';

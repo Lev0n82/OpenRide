@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import DriverApplication from "./pages/DriverApplication";
 import RideBooking from "./pages/RideBooking";
 import DeliveryBooking from "./pages/DeliveryBooking";
+import ExpansionDashboard from "./pages/ExpansionDashboard";
 import DriverDashboard from "./pages/DriverDashboard";
 import RiderDashboard from "./pages/RiderDashboard";
 import Governance from "./pages/Governance";
@@ -20,7 +21,8 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path="/driver/apply" component={DriverApplication} />
-      <Route path="/ride/book" component={RideBooking} />     <Route path="/delivery-booking" component={DeliveryBooking} />
+      <Route path="/ride/book" component={RideBooking} />             <Route path="/delivery" component={DeliveryBooking} />
+        <Route path="/expansion" component={ExpansionDashboard} />
       <Route path="/driver" component={DriverDashboard} />
       <Route path="/rider" component={RiderDashboard} />
       <Route path="/governance" component={Governance} />
