@@ -336,3 +336,14 @@
 - [x] Document acceptance criteria for feedback incorporation
 - [x] Document acceptance criteria for automated implementation
 - [x] Document acceptance criteria for monitoring and rollback
+
+
+## 5-Stage Deployment Pipeline
+
+- [x] Update deployment workflow design with Dev → IST → UAT → Stage → Production pipeline
+- [x] Define environment-specific configurations for each stage
+- [x] Document promotion gates and validation criteria for each stage
+- [x] Update acceptance criteria for multi-stage deployment
+- [x] Define real user validation requirements for Stage environment
+- [x] Document rollback procedures for each deployment stage
+- [ ] Create monitoring and alerting for each environment

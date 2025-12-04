@@ -180,19 +180,33 @@ Production-ready code is generated based on the approved proposal specifications
 
 Generated code is tested in an isolated environment before deployment. The system must create an isolated test environment separate from production. All generated files must be copied to the test environment. Database migrations must be applied to a test database. The test suite must be executed including unit tests, integration tests, and end-to-end tests. All tests must pass with 0 failures for implementation to proceed. If any tests fail, the implementation must be halted and marked as "failed". Failed implementations must be rolled back and administrators notified with error details. Test results must be logged to the `implementation_tracking` table for debugging.
 
-**AC-SI-5.4: Staging Deployment**
+**AC-SI-5.4: Development Environment Deployment**
 
-Code is deployed to a staging environment for integration testing. After local tests pass, the system must deploy changes to the staging environment. Staging deployment must use the same process as production deployment to ensure consistency. Database migrations must be applied to the staging database. The staging server must be restarted to load new code. Integration tests must be executed against the staging environment. The system must verify that all API endpoints respond correctly and frontend pages load without errors. Staging deployment must complete within 10 minutes under normal conditions. If staging deployment fails, the implementation must be halted and rolled back.
+Code is deployed to the Dev environment as the first deployment target. After code generation, the system must deploy changes to the dedicated Dev environment. All unit tests must be executed in the Dev environment with 100% pass rate required. Code quality checks must run including linting, type checking, and security scanning. Static code analysis must identify any security vulnerabilities or code smells. The Dev database must have migrations applied successfully. Dev deployment must complete within 15 minutes under normal conditions. If any Dev validation fails, the implementation must be halted and the proposal marked as "implementation_failed".
 
-**AC-SI-5.5: Canary Deployment**
+**AC-SI-5.5: IST Environment Deployment**
 
-Changes are gradually rolled out to production starting with 5% of traffic. After staging tests pass, the system must deploy to production with a canary configuration. Initially, only 5% of production traffic must be routed to the new version. The system must monitor error rates, response times, and success metrics for the canary deployment. Canary monitoring must run for at least 1 hour before increasing traffic. If error rates increase by more than 50% compared to baseline, the canary must be automatically rolled back. If canary metrics are healthy, traffic must be gradually increased to 25%, then 50%, then 100%. Each traffic increase must be monitored for at least 30 minutes before the next increase. Full rollout must complete within 4 hours if all metrics remain healthy.
+Code is promoted to the IST environment for integration testing. After Dev validation passes, the system must deploy changes to the IST environment. Comprehensive integration tests must be executed including API contract tests, database migration tests, and third-party service integration tests. The IST environment must use a staging database with production-like data volume. All integration tests must pass with 0 failures for promotion to proceed. Database migrations must complete successfully without data loss or corruption. API contract tests must verify no breaking changes to existing endpoints. IST deployment must complete within 30 minutes under normal conditions. If IST validation fails, the implementation must be rolled back and administrators notified.
 
-**AC-SI-5.6: Success Metrics Monitoring**
+**AC-SI-5.6: UAT Environment Deployment**
+
+Code is promoted to the UAT environment for manual user acceptance testing. After IST validation passes, the system must deploy changes to the UAT environment. The UAT environment must use anonymized production data for realistic testing. At least 3 designated test users must be notified to begin UAT testing. Test users must have 24-48 hours to complete manual testing of all critical user flows. Test users must provide explicit sign-off approval before promotion to Stage. No critical or high-severity bugs can be reported during UAT for promotion to proceed. If UAT is not approved within 48 hours, administrators must be notified for manual review. UAT feedback must be collected and stored for continuous improvement of the testing process.
+
+**AC-SI-5.7: Stage Environment Deployment (10% Users)**
+
+Code is promoted to the Stage environment serving 10% of production users. After UAT approval, the system must deploy changes to the Stage environment running on production infrastructure. Exactly 10% of users must be selected using consistent user ID hashing to ensure the same users see the new functionality. The system must track all user interactions with the new functionality over a 24-hour monitoring period. At least 95% of user interactions must succeed for promotion to full production. Error rates must remain within 150% of baseline metrics. Performance metrics (response time, page load time) must remain within 130% of baseline. The minimum number of required interactions depends on feature category: 50% of stage users for UX changes, 30% for new features, 20% for other changes. If Stage validation fails, the deployment must be automatically rolled back and the proposal marked for review. Stage monitoring must run for exactly 24 hours before promotion decision is made.
+
+**AC-SI-5.8: Production Environment Deployment (100% Users)**
+
+Code is promoted to full production serving all users. After Stage validation passes, the system must deploy changes to 100% of production traffic. The deployment must complete within 15 minutes to minimize the transition window. All production monitoring systems must be actively tracking the new deployment. Error rates must be monitored continuously and remain within 150% of baseline. Success metrics defined in the proposal must be tracked for 48 hours post-deployment. If error rates exceed thresholds or critical incidents occur, automatic rollback must trigger immediately. After 48 hours of stable operation, the deployment is considered successful and the proposal status updated to "deployed". DAO members must be notified of successful deployment with before/after metric comparisons.
+
+
+
+**AC-SI-5.9: Success Metrics Monitoring**
 
 Deployed improvements are monitored against their defined success metrics. The system must extract success metrics from the approved proposal. For each metric, the system must record the baseline value before implementation. After deployment, the system must monitor actual metric values for 48 hours. Metric values must be recorded every hour and compared to target values. If metrics move in the opposite direction of targets, the deployment must be flagged for review. After 48 hours, the system must calculate whether targets were achieved. Achievement status must be recorded in the `implementation_tracking` table. DAO members must be notified of the implementation outcome with before/after metric comparisons.
 
-**AC-SI-5.7: Automatic Rollback**
+**AC-SI-5.10: Automatic Rollback**
 
 Deployments are automatically rolled back if critical issues are detected. The system must continuously monitor error rates during and after deployment. If error rates increase by more than 50% compared to baseline, rollback must trigger immediately. If API response times increase by more than 30%, rollback must trigger. If any critical severity errors occur, rollback must trigger. If success metrics regress significantly (>20% worse than baseline), rollback must trigger after 24 hours. Rollback must restore the previous code version and revert database migrations if safe. The proposal status must be updated to "rolled_back" and administrators notified. Rollback must complete within 5 minutes to minimize user impact. After rollback, the proposal must be marked for manual review to understand the failure cause.
 
@@ -248,7 +262,7 @@ Vote casting must complete within 2 seconds from user action to confirmation. Vo
 
 **NFR-SI-4: Implementation Performance**
 
-Code generation must complete within 5 minutes for proposals with up to 10 file changes. Local testing must complete within 10 minutes including all unit and integration tests. Staging deployment must complete within 10 minutes. Canary deployment must complete within 15 minutes from 5% to 100% traffic if metrics are healthy. Rollback must complete within 5 minutes from trigger to full restoration.
+Code generation must complete within 5 minutes for proposals with up to 10 file changes. Dev environment deployment and validation must complete within 15 minutes including all unit tests and code quality checks. IST environment deployment and integration testing must complete within 30 minutes. UAT environment deployment must complete within 10 minutes, with manual testing window of 24-48 hours. Stage environment deployment must complete within 15 minutes, with 24-hour monitoring period for user interaction validation. Production deployment must complete within 15 minutes from Stage promotion. Total pipeline duration from code generation to production (excluding UAT manual testing) must not exceed 4 hours of automated processing time. Rollback must complete within 5 minutes from trigger to full restoration at any stage.
 
 ### Reliability Requirements
 
@@ -308,5 +322,5 @@ Administrators must receive alerts for failed opportunity generation, judge eval
 **Last Updated:** December 2024  
 **Status:** Ready for Implementation
 
-**Total Acceptance Criteria:** 46 detailed criteria across 6 functional requirements and 15 non-functional requirements.
+**Total Acceptance Criteria:** 50 detailed criteria across 6 functional requirements (35 criteria) and 15 non-functional requirements, including comprehensive 5-stage deployment pipeline validation.
 
