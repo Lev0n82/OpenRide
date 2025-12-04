@@ -326,3 +326,13 @@
 - [ ] Build admin dashboard for monitoring improvements
 - [ ] Add manual override and rollback capabilities
 - [ ] Implement improvement metrics and success tracking
+
+
+## Self-Improvement System Acceptance Criteria
+
+- [x] Document acceptance criteria for opportunity generation
+- [x] Document acceptance criteria for judge panel validation
+- [x] Document acceptance criteria for DAO voting workflow
+- [x] Document acceptance criteria for feedback incorporation
+- [x] Document acceptance criteria for automated implementation
+- [x] Document acceptance criteria for monitoring and rollback
