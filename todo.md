@@ -370,6 +370,10 @@
 - [x] 6 tRPC API endpoints (saveDraft, uploadDocument, checkKYC, submit, getApplication, admin endpoints)
 - [x] Router integrated into main application
 - [ ] Integration tests for all 6 endpoints
-- [ ] Update frontend DriverApplication.tsx to use new API
+- [x] Refactor DriverApplication.tsx to use new tRPC endpoints
+- [x] Implement real-time document upload with progress
+- [x] Add form validation and error handling
+- [ ] Fix and run integration tests
+- [ ] Test complete application workflow end-to-end
 - [ ] Create admin driver verification dashboard
 - [ ] End-to-end testing of complete workflow

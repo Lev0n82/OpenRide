@@ -1,586 +1,741 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/_core/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Upload, Car, FileText, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
-// Storage will be handled via tRPC backend
+import { Upload, Car, FileText, CheckCircle, ArrowRight, ArrowLeft, Loader2, ExternalLink } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 type ApplicationStep = 'personal' | 'vehicle' | 'documents' | 'kyc' | 'review';
 
+type DocumentType = 'license' | 'insurance' | 'registration';
+
 export default function DriverApplication() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<ApplicationStep>('personal');
   
   // Personal Information
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [province, setProvince] = useState('ON');
-  const [postalCode, setPostalCode] = useState('');
+  const [fullName, setFullName] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phoneNumber, setPhoneNumber] = useState(user?.phoneNumber || '');
   
   // Vehicle Information
   const [vehicleMake, setVehicleMake] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
-  const [vehicleYear, setVehicleYear] = useState('');
+  const [vehicleYear, setVehicleYear] = useState<number>(new Date().getFullYear());
   const [vehicleColor, setVehicleColor] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
-  const [vehicleCapacity, setVehicleCapacity] = useState('4');
+  const [passengerCapacity, setPassengerCapacity] = useState<number>(4);
   
   // Document uploads
-  const [licenseFile, setLicenseFile] = useState<File | null>(null);
-  const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
-  const [registrationFile, setRegistrationFile] = useState<File | null>(null);
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
-  const [vehiclePhoto, setVehiclePhoto] = useState<File | null>(null);
-  
-  // Delivery service opt-in
-  const [offersDelivery, setOffersDelivery] = useState(false);
-  const [maxPackageSize, setMaxPackageSize] = useState<'small' | 'medium' | 'large'>('medium');
+  const [uploadProgress, setUploadProgress] = useState<Record<DocumentType, number>>({
+    license: 0,
+    insurance: 0,
+    registration: 0,
+  });
+  const [uploadedDocs, setUploadedDocs] = useState<Record<DocumentType, string>>({
+    license: '',
+    insurance: '',
+    registration: '',
+  });
   
   // KYC status
-  const [kycCompleted, setKycCompleted] = useState(false);
-  const [piUserId, setPiUserId] = useState('');
+  const [kycStatus, setKycStatus] = useState<'pending' | 'in_progress' | 'verified' | 'failed'>('pending');
   
-  const [uploading, setUploading] = useState(false);
-
-  const applyMutation = trpc.driver.applyAsDriver.useMutation({
+  // Fetch existing application
+  const { data: applicationData, refetch: refetchApplication } = trpc.driverApplication.getMyApplication.useQuery();
+  
+  // Load existing application data
+  useEffect(() => {
+    if (applicationData?.application) {
+      const app = applicationData.application;
+      setFullName(app.fullName);
+      setEmail(app.email);
+      setPhoneNumber(app.phoneNumber);
+      if (app.vehicleMake) setVehicleMake(app.vehicleMake);
+      if (app.vehicleModel) setVehicleModel(app.vehicleModel);
+      if (app.vehicleYear) setVehicleYear(app.vehicleYear);
+      if (app.vehicleColor) setVehicleColor(app.vehicleColor);
+      if (app.licensePlate) setLicensePlate(app.licensePlate);
+      if (app.passengerCapacity) setPassengerCapacity(app.passengerCapacity);
+      setKycStatus(app.piKycStatus);
+      
+      // Load uploaded documents
+      if (applicationData.documents) {
+        const docMap: Record<DocumentType, string> = { license: '', insurance: '', registration: '' };
+        applicationData.documents.forEach(doc => {
+          docMap[doc.documentType] = doc.fileUrl;
+          setUploadProgress(prev => ({ ...prev, [doc.documentType]: 100 }));
+        });
+        setUploadedDocs(docMap);
+      }
+    }
+  }, [applicationData]);
+  
+  // Mutations
+  const saveDraftMutation = trpc.driverApplication.saveDraftApplication.useMutation({
+    onSuccess: () => {
+      toast.success('Progress saved');
+      refetchApplication();
+    },
+    onError: (error) => {
+      toast.error(`Failed to save: ${error.message}`);
+    },
+  });
+  
+  const uploadDocumentMutation = trpc.driverApplication.uploadDocument.useMutation({
+    onSuccess: (data, variables) => {
+      setUploadedDocs(prev => ({ ...prev, [variables.documentType]: data.fileUrl }));
+      setUploadProgress(prev => ({ ...prev, [variables.documentType]: 100 }));
+      toast.success(`${variables.documentType} uploaded successfully`);
+      refetchApplication();
+    },
+    onError: (error, variables) => {
+      setUploadProgress(prev => ({ ...prev, [variables.documentType]: 0 }));
+      toast.error(`Failed to upload ${variables.documentType}: ${error.message}`);
+    },
+  });
+  
+  const checkKycMutation = trpc.driverApplication.checkPiKycStatus.useMutation({
+    onSuccess: (data) => {
+      setKycStatus(data.kycStatus as any);
+      if (data.kycStatus !== 'verified') {
+        toast.info(data.message);
+      }
+    },
+    onError: (error) => {
+      toast.error(`KYC check failed: ${error.message}`);
+    },
+  });
+  
+  const submitMutation = trpc.driverApplication.submitApplication.useMutation({
     onSuccess: () => {
       toast.success('Application submitted successfully! We will review it within 24-48 hours.');
       setLocation('/driver');
     },
-    onError: (error: any) => {
-      toast.error(`Application failed: ${error.message}`);
+    onError: (error) => {
+      toast.error(`Submission failed: ${error.message}`);
     },
   });
-
-  const handleFileChange = (setter: (file: File | null) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setter(e.target.files[0]);
+  
+  // Save draft when moving between steps
+  const saveDraft = async () => {
+    if (!fullName || !email || !phoneNumber) {
+      return; // Don't save incomplete personal info
     }
-  };
-
-  const uploadFile = async (file: File, prefix: string): Promise<string> => {
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
-    const timestamp = Date.now();
-    const randomSuffix = Math.random().toString(36).substring(7);
-    const fileKey = `${prefix}/${timestamp}-${randomSuffix}-${file.name}`;
     
-    // Note: storagePut is a server-side function, we need to send file to backend
-    // For now, we'll use a data URL as placeholder
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    await saveDraftMutation.mutateAsync({
+      fullName,
+      email,
+      phoneNumber,
+      vehicleMake: vehicleMake || undefined,
+      vehicleModel: vehicleModel || undefined,
+      vehicleYear: vehicleYear || undefined,
+      vehicleColor: vehicleColor || undefined,
+      licensePlate: licensePlate || undefined,
+      passengerCapacity: passengerCapacity || undefined,
     });
   };
-
-  const handlePiKYC = async () => {
-    toast.info('Opening Pi Network KYC verification...');
-    // TODO: Integrate actual Pi Network KYC SDK
-    // For now, simulate KYC completion
-    setTimeout(() => {
-      setKycCompleted(true);
-      setPiUserId(`pi-user-${Date.now()}`);
-      toast.success('Pi Network KYC completed successfully!');
-    }, 2000);
+  
+  const handleFileUpload = async (file: File, documentType: DocumentType) => {
+    if (!file) return;
+    
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Only JPG, PNG, and PDF files are allowed');
+      return;
+    }
+    
+    setUploadProgress(prev => ({ ...prev, [documentType]: 10 }));
+    
+    try {
+      // Convert file to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Remove data URL prefix
+          const base64Data = result.split(',')[1];
+          resolve(base64Data);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      
+      setUploadProgress(prev => ({ ...prev, [documentType]: 50 }));
+      
+      await uploadDocumentMutation.mutateAsync({
+        documentType,
+        fileData: base64,
+        fileName: file.name,
+        mimeType: file.type,
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadProgress(prev => ({ ...prev, [documentType]: 0 }));
+    }
   };
-
+  
+  const handlePiKYC = async () => {
+    toast.info('Checking Pi Network KYC status...');
+    await checkKycMutation.mutateAsync();
+    
+    if (kycStatus !== 'verified') {
+      // Open Pi KYC portal
+      window.open('https://kyc.pi.network', '_blank');
+      toast.info('Please complete KYC verification in the opened window, then check status again');
+    }
+  };
+  
   const handleSubmit = async () => {
-    // Validate all required fields
-    if (!phone || !address || !city || !postalCode) {
-      toast.error('Please fill in all personal information');
+    // Final validation
+    if (!fullName || !email || !phoneNumber) {
+      toast.error('Please complete personal information');
       setCurrentStep('personal');
       return;
     }
-
-    if (!vehicleMake || !vehicleModel || !vehicleYear || !licensePlate) {
-      toast.error('Please fill in all vehicle information');
+    
+    if (!vehicleMake || !vehicleModel || !licensePlate) {
+      toast.error('Please complete vehicle information');
       setCurrentStep('vehicle');
       return;
     }
-
-    if (!licenseFile || !insuranceFile || !registrationFile) {
+    
+    if (!uploadedDocs.license || !uploadedDocs.insurance || !uploadedDocs.registration) {
       toast.error('Please upload all required documents');
       setCurrentStep('documents');
       return;
     }
-
-    if (!kycCompleted) {
+    
+    if (kycStatus !== 'verified') {
       toast.error('Please complete Pi Network KYC verification');
       setCurrentStep('kyc');
       return;
     }
-
-    try {
-      setUploading(true);
-
-      // Upload documents
-      const [licenseUrl, insuranceUrl, registrationUrl, profileUrl, vehicleUrl] = await Promise.all([
-        uploadFile(licenseFile, 'driver-licenses'),
-        uploadFile(insuranceFile, 'insurance-docs'),
-        uploadFile(registrationFile, 'vehicle-registration'),
-        profilePhoto ? uploadFile(profilePhoto, 'profile-photos') : Promise.resolve(''),
-        vehiclePhoto ? uploadFile(vehiclePhoto, 'vehicle-photos') : Promise.resolve(''),
-      ]);
-
-      // Submit application
-      await applyMutation.mutateAsync({
-        phone,
-        address,
-        city,
-        province,
-        postalCode,
-        licenseNumber: 'TEMP-' + Date.now(), // Should be extracted from uploaded document
-        licenseExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // Placeholder
-        insuranceProvider: 'Provider Name', // Should be from form
-        insurancePolicyNumber: 'POLICY-' + Date.now(),
-        insuranceExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-        vehicleMake,
-        vehicleModel,
-        vehicleYear: parseInt(vehicleYear),
-        vehicleColor,
-        licensePlate,
-        vehicleCapacity: parseInt(vehicleCapacity),
-        piKycStatus: kycCompleted ? 'verified' : 'pending',
-        piUserId,
-        offersDelivery,
-        maxPackageSize: offersDelivery ? maxPackageSize : undefined,
-        documents: {
-          license: licenseUrl,
-          insurance: insuranceUrl,
-          registration: registrationUrl,
-          profilePhoto: profileUrl,
-          vehiclePhoto: vehicleUrl,
-        },
-      });
-    } catch (error) {
-      console.error('Application submission error:', error);
-      toast.error('Failed to submit application. Please try again.');
-    } finally {
-      setUploading(false);
+    
+    await submitMutation.mutateAsync();
+  };
+  
+  const nextStep = async () => {
+    const steps: ApplicationStep[] = ['personal', 'vehicle', 'documents', 'kyc', 'review'];
+    const currentIndex = steps.indexOf(currentStep);
+    
+    // Validate current step
+    if (currentStep === 'personal') {
+      if (!fullName || !email || !phoneNumber) {
+        toast.error('Please fill in all personal information');
+        return;
+      }
+      await saveDraft();
+    } else if (currentStep === 'vehicle') {
+      if (!vehicleMake || !vehicleModel || !licensePlate) {
+        toast.error('Please fill in all vehicle information');
+        return;
+      }
+      await saveDraft();
+    } else if (currentStep === 'documents') {
+      if (!uploadedDocs.license || !uploadedDocs.insurance || !uploadedDocs.registration) {
+        toast.error('Please upload all required documents');
+        return;
+      }
+    } else if (currentStep === 'kyc') {
+      if (kycStatus !== 'verified') {
+        toast.error('Please complete Pi Network KYC verification');
+        return;
+      }
+    }
+    
+    if (currentIndex < steps.length - 1) {
+      setCurrentStep(steps[currentIndex + 1]);
     }
   };
-
-  const renderStep = () => {
-    switch (currentStep) {
+  
+  const prevStep = () => {
+    const steps: ApplicationStep[] = ['personal', 'vehicle', 'documents', 'kyc', 'review'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(steps[currentIndex - 1]);
+    }
+  };
+  
+  const getStepNumber = (step: ApplicationStep): number => {
+    const steps: ApplicationStep[] = ['personal', 'vehicle', 'documents', 'kyc', 'review'];
+    return steps.indexOf(step) + 1;
+  };
+  
+  const isStepComplete = (step: ApplicationStep): boolean => {
+    switch (step) {
       case 'personal':
-        return (
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="phone">Phone Number *</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="+1 (416) 555-0123"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="address">Street Address *</Label>
-              <Input
-                id="address"
-                placeholder="123 Main Street"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                required
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="city">City *</Label>
-                <Input
-                  id="city"
-                  placeholder="Toronto"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="province">Province *</Label>
-                <Input
-                  id="province"
-                  value={province}
-                  onChange={(e) => setProvince(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="postalCode">Postal Code *</Label>
-              <Input
-                id="postalCode"
-                placeholder="M5H 2N2"
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-        );
-
+        return !!(fullName && email && phoneNumber);
       case 'vehicle':
-        return (
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="make">Make *</Label>
-                <Input
-                  id="make"
-                  placeholder="Toyota"
-                  value={vehicleMake}
-                  onChange={(e) => setVehicleMake(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="model">Model *</Label>
-                <Input
-                  id="model"
-                  placeholder="Camry"
-                  value={vehicleModel}
-                  onChange={(e) => setVehicleModel(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="year">Year *</Label>
-                <Input
-                  id="year"
-                  type="number"
-                  placeholder="2022"
-                  value={vehicleYear}
-                  onChange={(e) => setVehicleYear(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="color">Color *</Label>
-                <Input
-                  id="color"
-                  placeholder="Silver"
-                  value={vehicleColor}
-                  onChange={(e) => setVehicleColor(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="plate">License Plate *</Label>
-                <Input
-                  id="plate"
-                  placeholder="ABCD 123"
-                  value={licensePlate}
-                  onChange={(e) => setLicensePlate(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="capacity">Passenger Capacity *</Label>
-                <Input
-                  id="capacity"
-                  type="number"
-                  min="1"
-                  max="8"
-                  value={vehicleCapacity}
-                  onChange={(e) => setVehicleCapacity(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-            <div className="pt-4 border-t">
-              <Label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={offersDelivery}
-                  onChange={(e) => setOffersDelivery(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <span>I want to offer delivery services</span>
-              </Label>
-              {offersDelivery && (
-                <div className="mt-4">
-                  <Label htmlFor="maxPackageSize">Maximum Package Size</Label>
-                  <select
-                    id="maxPackageSize"
-                    value={maxPackageSize}
-                    onChange={(e) => setMaxPackageSize(e.target.value as 'small' | 'medium' | 'large')}
-                    className="w-full mt-1 p-2 border rounded"
-                  >
-                    <option value="small">Small (shoebox size)</option>
-                    <option value="medium">Medium (suitcase size)</option>
-                    <option value="large">Large (large box)</option>
-                  </select>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-
+        return !!(vehicleMake && vehicleModel && licensePlate);
       case 'documents':
-        return (
-          <div className="space-y-6">
-            <div>
-              <Label htmlFor="license">Driver's License * (PDF or Image)</Label>
-              <div className="mt-2">
-                <Input
-                  id="license"
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={handleFileChange(setLicenseFile)}
-                  required
-                />
-                {licenseFile && (
-                  <p className="text-sm text-green-600 mt-1">✓ {licenseFile.name}</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="insurance">Insurance Certificate * (PDF or Image)</Label>
-              <div className="mt-2">
-                <Input
-                  id="insurance"
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={handleFileChange(setInsuranceFile)}
-                  required
-                />
-                {insuranceFile && (
-                  <p className="text-sm text-green-600 mt-1">✓ {insuranceFile.name}</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="registration">Vehicle Registration * (PDF or Image)</Label>
-              <div className="mt-2">
-                <Input
-                  id="registration"
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={handleFileChange(setRegistrationFile)}
-                  required
-                />
-                {registrationFile && (
-                  <p className="text-sm text-green-600 mt-1">✓ {registrationFile.name}</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="profile">Profile Photo (Optional)</Label>
-              <div className="mt-2">
-                <Input
-                  id="profile"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange(setProfilePhoto)}
-                />
-                {profilePhoto && (
-                  <p className="text-sm text-green-600 mt-1">✓ {profilePhoto.name}</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="vehicle-photo">Vehicle Photo (Optional)</Label>
-              <div className="mt-2">
-                <Input
-                  id="vehicle-photo"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange(setVehiclePhoto)}
-                />
-                {vehiclePhoto && (
-                  <p className="text-sm text-green-600 mt-1">✓ {vehiclePhoto.name}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-
+        return !!(uploadedDocs.license && uploadedDocs.insurance && uploadedDocs.registration);
       case 'kyc':
-        return (
-          <div className="space-y-6">
-            <div className="text-center py-8">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <FileText className="w-12 h-12 text-blue-600" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Pi Network KYC Verification</h3>
-              <p className="text-gray-600 mb-6">
-                Complete your identity verification through Pi Network to ensure platform safety and trust.
-              </p>
-              {kycCompleted ? (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-2" />
-                  <p className="text-green-700 font-medium">KYC Verification Complete!</p>
-                  <p className="text-sm text-gray-600 mt-1">Pi User ID: {piUserId}</p>
-                </div>
-              ) : (
-                <Button onClick={handlePiKYC} size="lg" className="gap-2">
-                  <FileText className="w-5 h-5" />
-                  Start Pi Network KYC
-                </Button>
-              )}
-            </div>
-          </div>
-        );
-
+        return kycStatus === 'verified';
       case 'review':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-semibold mb-2">Personal Information</h3>
-              <div className="bg-gray-50 p-4 rounded space-y-1 text-sm">
-                <p><strong>Phone:</strong> {phone}</p>
-                <p><strong>Address:</strong> {address}, {city}, {province} {postalCode}</p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Vehicle Information</h3>
-              <div className="bg-gray-50 p-4 rounded space-y-1 text-sm">
-                <p><strong>Vehicle:</strong> {vehicleYear} {vehicleMake} {vehicleModel} ({vehicleColor})</p>
-                <p><strong>License Plate:</strong> {licensePlate}</p>
-                <p><strong>Capacity:</strong> {vehicleCapacity} passengers</p>
-                {offersDelivery && (
-                  <p><strong>Delivery Service:</strong> Yes (Max size: {maxPackageSize})</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Documents</h3>
-              <div className="bg-gray-50 p-4 rounded space-y-1 text-sm">
-                <p>✓ Driver's License: {licenseFile?.name}</p>
-                <p>✓ Insurance Certificate: {insuranceFile?.name}</p>
-                <p>✓ Vehicle Registration: {registrationFile?.name}</p>
-                {profilePhoto && <p>✓ Profile Photo: {profilePhoto.name}</p>}
-                {vehiclePhoto && <p>✓ Vehicle Photo: {vehiclePhoto.name}</p>}
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Verification</h3>
-              <div className="bg-gray-50 p-4 rounded space-y-1 text-sm">
-                <p>✓ Pi Network KYC: {kycCompleted ? 'Completed' : 'Pending'}</p>
-                {piUserId && <p>Pi User ID: {piUserId}</p>}
-              </div>
-            </div>
-          </div>
-        );
+        return false;
+      default:
+        return false;
     }
   };
-
-  const steps: { id: ApplicationStep; label: string; icon: any }[] = [
-    { id: 'personal', label: 'Personal Info', icon: FileText },
-    { id: 'vehicle', label: 'Vehicle', icon: Car },
-    { id: 'documents', label: 'Documents', icon: Upload },
-    { id: 'kyc', label: 'KYC', icon: CheckCircle },
-    { id: 'review', label: 'Review', icon: CheckCircle },
-  ];
-
-  const currentStepIndex = steps.findIndex(s => s.id === currentStep);
-
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="container max-w-3xl">
+  
+  // Show application status if already submitted
+  if (applicationData?.application?.status === 'submitted' || applicationData?.application?.status === 'under_review') {
+    return (
+      <div className="container max-w-2xl py-8">
         <Card>
           <CardHeader>
-            <CardTitle>Become an OpenRide Driver</CardTitle>
+            <CardTitle>Application Under Review</CardTitle>
             <CardDescription>
-              Complete the application to start earning 87% of fares plus RIDE tokens
+              Your driver application has been submitted and is currently being reviewed by our team.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* Progress Steps */}
-            <div className="mb-8">
-              <div className="flex justify-between items-center">
-                {steps.map((step, index) => {
-                  const Icon = step.icon;
-                  const isActive = step.id === currentStep;
-                  const isCompleted = index < currentStepIndex;
-                  
-                  return (
-                    <div key={step.id} className="flex flex-col items-center flex-1">
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          isActive
-                            ? 'bg-blue-600 text-white'
-                            : isCompleted
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-200 text-gray-500'
-                        }`}
-                      >
-                        <Icon className="w-5 h-5" />
-                      </div>
-                      <span className="text-xs mt-1 text-center">{step.label}</span>
-                    </div>
-                  );
-                })}
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-2 text-yellow-600">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="font-medium">Status: Under Review</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              We typically review applications within 24-48 hours. You will receive a notification once your application has been reviewed.
+            </p>
+            <Button onClick={() => setLocation('/dashboard')} variant="outline">
+              Return to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (applicationData?.application?.status === 'approved') {
+    return (
+      <div className="container max-w-2xl py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+              Application Approved
+            </CardTitle>
+            <CardDescription>
+              Congratulations! Your driver application has been approved.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              You can now start accepting ride requests. Go to your driver dashboard to get started.
+            </p>
+            <Button onClick={() => setLocation('/driver')}>
+              Go to Driver Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  if (applicationData?.application?.status === 'rejected') {
+    return (
+      <div className="container max-w-2xl py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-red-600">Application Rejected</CardTitle>
+            <CardDescription>
+              Unfortunately, your driver application was not approved.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {applicationData.application.rejectionReason && (
+              <div className="rounded-md bg-red-50 p-4">
+                <p className="text-sm text-red-800">
+                  <strong>Reason:</strong> {applicationData.application.rejectionReason}
+                </p>
               </div>
-              <div className="relative mt-2">
-                <div className="h-1 bg-gray-200 rounded">
-                  <div
-                    className="h-1 bg-blue-600 rounded transition-all"
-                    style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
+            )}
+            <p className="text-sm text-muted-foreground">
+              You can submit a new application after addressing the issues mentioned above.
+            </p>
+            <Button onClick={() => setLocation('/dashboard')} variant="outline">
+              Return to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="container max-w-4xl py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Become a Driver</h1>
+        <p className="text-muted-foreground mt-2">
+          Complete the application process to start earning with OpenRide
+        </p>
+      </div>
+      
+      {/* Progress Steps */}
+      <div className="mb-8 flex items-center justify-between">
+        {(['personal', 'vehicle', 'documents', 'kyc', 'review'] as ApplicationStep[]).map((step, index) => (
+          <div key={step} className="flex items-center">
+            <div className={`flex flex-col items-center ${index > 0 ? 'ml-4' : ''}`}>
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full border-2 ${
+                  currentStep === step
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : isStepComplete(step)
+                    ? 'border-green-600 bg-green-600 text-white'
+                    : 'border-gray-300 bg-white text-gray-400'
+                }`}
+              >
+                {isStepComplete(step) ? (
+                  <CheckCircle className="h-5 w-5" />
+                ) : (
+                  <span className="text-sm font-medium">{index + 1}</span>
+                )}
+              </div>
+              <span className="mt-2 text-xs font-medium capitalize">{step}</span>
+            </div>
+            {index < 4 && (
+              <div
+                className={`h-0.5 w-12 ${
+                  isStepComplete(step) ? 'bg-green-600' : 'bg-gray-300'
+                }`}
+              />
+            )}
+          </div>
+        ))}
+      </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {currentStep === 'personal' && 'Personal Information'}
+            {currentStep === 'vehicle' && 'Vehicle Information'}
+            {currentStep === 'documents' && 'Required Documents'}
+            {currentStep === 'kyc' && 'Identity Verification'}
+            {currentStep === 'review' && 'Review & Submit'}
+          </CardTitle>
+          <CardDescription>
+            {currentStep === 'personal' && 'Tell us about yourself'}
+            {currentStep === 'vehicle' && 'Provide details about your vehicle'}
+            {currentStep === 'documents' && 'Upload required documents'}
+            {currentStep === 'kyc' && 'Verify your identity with Pi Network'}
+            {currentStep === 'review' && 'Review your application before submitting'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Personal Information Step */}
+          {currentStep === 'personal' && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="fullName">Full Name *</Label>
+                <Input
+                  id="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="John Doe"
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="john@example.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="phoneNumber">Phone Number *</Label>
+                <Input
+                  id="phoneNumber"
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+1 (555) 123-4567"
+                />
+              </div>
+            </div>
+          )}
+          
+          {/* Vehicle Information Step */}
+          {currentStep === 'vehicle' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="vehicleMake">Make *</Label>
+                  <Input
+                    id="vehicleMake"
+                    value={vehicleMake}
+                    onChange={(e) => setVehicleMake(e.target.value)}
+                    placeholder="Toyota"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="vehicleModel">Model *</Label>
+                  <Input
+                    id="vehicleModel"
+                    value={vehicleModel}
+                    onChange={(e) => setVehicleModel(e.target.value)}
+                    placeholder="Camry"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="vehicleYear">Year *</Label>
+                  <Input
+                    id="vehicleYear"
+                    type="number"
+                    value={vehicleYear}
+                    onChange={(e) => setVehicleYear(parseInt(e.target.value))}
+                    placeholder="2020"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="vehicleColor">Color *</Label>
+                  <Input
+                    id="vehicleColor"
+                    value={vehicleColor}
+                    onChange={(e) => setVehicleColor(e.target.value)}
+                    placeholder="Silver"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="licensePlate">License Plate *</Label>
+                  <Input
+                    id="licensePlate"
+                    value={licensePlate}
+                    onChange={(e) => setLicensePlate(e.target.value.toUpperCase())}
+                    placeholder="ABC 1234"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="passengerCapacity">Passenger Capacity *</Label>
+                  <Input
+                    id="passengerCapacity"
+                    type="number"
+                    min="1"
+                    max="8"
+                    value={passengerCapacity}
+                    onChange={(e) => setPassengerCapacity(parseInt(e.target.value))}
                   />
                 </div>
               </div>
             </div>
-
-            {/* Step Content */}
-            <div className="min-h-[400px]">
-              {renderStep()}
+          )}
+          
+          {/* Documents Step */}
+          {currentStep === 'documents' && (
+            <div className="space-y-6">
+              {(['license', 'insurance', 'registration'] as DocumentType[]).map((docType) => (
+                <div key={docType} className="space-y-2">
+                  <Label className="capitalize">
+                    {docType === 'license' && "Driver's License *"}
+                    {docType === 'insurance' && 'Insurance Certificate *'}
+                    {docType === 'registration' && 'Vehicle Registration *'}
+                  </Label>
+                  {uploadedDocs[docType] ? (
+                    <div className="flex items-center gap-2 rounded-md border border-green-600 bg-green-50 p-4">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-medium text-green-600">Uploaded</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setUploadedDocs(prev => ({ ...prev, [docType]: '' }));
+                          setUploadProgress(prev => ({ ...prev, [docType]: 0 }));
+                        }}
+                      >
+                        Replace
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,application/pdf"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, docType);
+                        }}
+                      />
+                      {uploadProgress[docType] > 0 && uploadProgress[docType] < 100 && (
+                        <Progress value={uploadProgress[docType]} className="h-2" />
+                      )}
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    JPG, PNG, or PDF (max 10MB)
+                  </p>
+                </div>
+              ))}
             </div>
-
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t">
+          )}
+          
+          {/* KYC Step */}
+          {currentStep === 'kyc' && (
+            <div className="space-y-4">
+              <div className="rounded-md border border-blue-200 bg-blue-50 p-4">
+                <p className="text-sm text-blue-800">
+                  OpenRide uses Pi Network's KYC verification to ensure all drivers are verified individuals.
+                  This helps maintain trust and safety in our community.
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-between rounded-md border p-4">
+                <div className="flex items-center gap-3">
+                  <FileText className="h-8 w-8 text-primary" />
+                  <div>
+                    <p className="font-medium">Pi Network KYC</p>
+                    <p className="text-sm text-muted-foreground">
+                      Status: <span className="capitalize font-medium">{kycStatus.replace('_', ' ')}</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  {kycStatus === 'verified' ? (
+                    <CheckCircle className="h-6 w-6 text-green-600" />
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePiKYC}
+                        disabled={checkKycMutation.isPending}
+                      >
+                        {checkKycMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Checking...
+                          </>
+                        ) : (
+                          'Check Status'
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => window.open('https://kyc.pi.network', '_blank')}
+                      >
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Start KYC
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Review Step */}
+          {currentStep === 'review' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold mb-2">Personal Information</h3>
+                <div className="space-y-1 text-sm">
+                  <p><strong>Name:</strong> {fullName}</p>
+                  <p><strong>Email:</strong> {email}</p>
+                  <p><strong>Phone:</strong> {phoneNumber}</p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold mb-2">Vehicle Information</h3>
+                <div className="space-y-1 text-sm">
+                  <p><strong>Vehicle:</strong> {vehicleYear} {vehicleMake} {vehicleModel}</p>
+                  <p><strong>Color:</strong> {vehicleColor}</p>
+                  <p><strong>License Plate:</strong> {licensePlate}</p>
+                  <p><strong>Capacity:</strong> {passengerCapacity} passengers</p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold mb-2">Documents</h3>
+                <div className="space-y-1 text-sm">
+                  <p className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Driver's License
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Insurance Certificate
+                  </p>
+                  <p className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    Vehicle Registration
+                  </p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold mb-2">Identity Verification</h3>
+                <p className="flex items-center gap-2 text-sm">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  Pi Network KYC Verified
+                </p>
+              </div>
+              
+              <div className="rounded-md bg-yellow-50 border border-yellow-200 p-4">
+                <p className="text-sm text-yellow-800">
+                  By submitting this application, you confirm that all information provided is accurate and complete.
+                  False information may result in application rejection or account termination.
+                </p>
+              </div>
+            </div>
+          )}
+          
+          {/* Navigation Buttons */}
+          <div className="flex justify-between pt-4">
+            <Button
+              variant="outline"
+              onClick={prevStep}
+              disabled={currentStep === 'personal'}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Previous
+            </Button>
+            
+            {currentStep === 'review' ? (
               <Button
-                variant="outline"
-                onClick={() => {
-                  const prevIndex = Math.max(0, currentStepIndex - 1);
-                  setCurrentStep(steps[prevIndex].id);
-                }}
-                disabled={currentStepIndex === 0}
-                className="gap-2"
+                onClick={handleSubmit}
+                disabled={submitMutation.isPending}
               >
-                <ArrowLeft className="w-4 h-4" />
-                Previous
+                {submitMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Submit Application
+                    <CheckCircle className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
-
-              {currentStep === 'review' ? (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={uploading || applyMutation.isPending}
-                  className="gap-2"
-                >
-                  {uploading || applyMutation.isPending ? 'Submitting...' : 'Submit Application'}
-                  <CheckCircle className="w-4 h-4" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={() => {
-                    const nextIndex = Math.min(steps.length - 1, currentStepIndex + 1);
-                    setCurrentStep(steps[nextIndex].id);
-                  }}
-                  className="gap-2"
-                >
-                  Next
-                  <ArrowRight className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            ) : (
+              <Button onClick={nextStep}>
+                Next
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
