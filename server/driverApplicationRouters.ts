@@ -310,7 +310,7 @@ export const driverApplicationRouter = router({
         .where(eq(driverApplications.status, 'submitted'))
         .orderBy(desc(driverApplications.submittedAt));
 
-      return applications;
+      return { applications };
     }),
 
   // Admin: Get application details
