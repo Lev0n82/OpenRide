@@ -36,6 +36,13 @@
       "when": 1764751514544,
       "tag": "0004_dazzling_turbo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1766021420764,
+      "tag": "0005_strong_slipstream",
+      "breakpoints": true
     }
   ]
 }

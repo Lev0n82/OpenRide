@@ -5,6 +5,8 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { piRouter } from "./piRouters";
 import { deliveryRouter } from "./deliveryRouters";
 import { expansionRouter } from "./expansionRouters";
+import { driverApplicationRouter } from "./driverApplicationRouters";
+
 import { z } from "zod";
 import {
   createDriverProfile,
@@ -76,7 +78,7 @@ export const appRouter = router({
   pi: piRouter,
   delivery: deliveryRouter,
   expansion: expansionRouter,
-  
+  driverApplication: driverApplicationRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

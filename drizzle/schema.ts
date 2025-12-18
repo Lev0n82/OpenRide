@@ -286,6 +286,54 @@ export type SafetyIncident = typeof safetyIncidents.$inferSelect;
 export type InsertSafetyIncident = typeof safetyIncidents.$inferInsert;
 
 // ============================================================================
+// DRIVER APPLICATIONS & DOCUMENTS
+// ============================================================================
+
+export const driverApplications = mysqlTable("driverApplications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  fullName: varchar("fullName", { length: 100 }).notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  phoneNumber: varchar("phoneNumber", { length: 20 }).notNull(),
+  vehicleMake: varchar("vehicleMake", { length: 50 }),
+  vehicleModel: varchar("vehicleModel", { length: 50 }),
+  vehicleYear: int("vehicleYear"),
+  vehicleColor: varchar("vehicleColor", { length: 30 }),
+  licensePlate: varchar("licensePlate", { length: 20 }),
+  passengerCapacity: int("passengerCapacity").default(4),
+  piKycStatus: mysqlEnum("piKycStatus", ["pending", "in_progress", "verified", "failed"]).default("pending").notNull(),
+  piUserId: varchar("piUserId", { length: 100 }),
+  status: mysqlEnum("status", ["draft", "submitted", "under_review", "approved", "rejected"]).default("draft").notNull(),
+  rejectionReason: text("rejectionReason"),
+  submittedAt: timestamp("submittedAt"),
+  reviewedAt: timestamp("reviewedAt"),
+  reviewedBy: int("reviewedBy").references(() => users.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DriverApplication = typeof driverApplications.$inferSelect;
+export type InsertDriverApplication = typeof driverApplications.$inferInsert;
+
+export const driverDocuments = mysqlTable("driverDocuments", {
+  id: int("id").autoincrement().primaryKey(),
+  applicationId: int("applicationId").notNull().references(() => driverApplications.id),
+  documentType: mysqlEnum("documentType", ["license", "insurance", "registration"]).notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileSize: int("fileSize").notNull(), // in bytes
+  mimeType: varchar("mimeType", { length: 100 }).notNull(),
+  verificationStatus: mysqlEnum("verificationStatus", ["pending", "approved", "rejected"]).default("pending").notNull(),
+  verificationNotes: text("verificationNotes"),
+  verifiedBy: int("verifiedBy").references(() => users.id),
+  verifiedAt: timestamp("verifiedAt"),
+  uploadedAt: timestamp("uploadedAt").defaultNow().notNull(),
+});
+
+export type DriverDocument = typeof driverDocuments.$inferSelect;
+export type InsertDriverDocument = typeof driverDocuments.$inferInsert;
+
+// ============================================================================
 // ML & ANALYTICS TABLES
 // ============================================================================
 
