@@ -10,6 +10,7 @@ import { MapPin, Navigation, DollarSign, Clock, User, Car, Phone, Star, X } from
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { MapView } from '@/components/Map';
+import { createPiPayment, isPiSDKAvailable } from '@/lib/pi';
 
 type RideStatus = 'searching' | 'matched' | 'driver_arriving' | 'in_progress' | 'completed';
 
@@ -40,6 +41,8 @@ export default function RideBooking() {
   const [currentRideId, setCurrentRideId] = useState<number | null>(null);
   const [matchedDriver, setMatchedDriver] = useState<any>(null);
   const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   // Check for active ride
   const { data: activeRideData } = trpc.ride.getActive.useQuery(undefined, {
@@ -244,7 +247,11 @@ export default function RideBooking() {
     }
   }, [activeRideData]);
 
-  const handleRequestRide = () => {
+  // Pi payment mutations
+  const approvePiPaymentMutation = trpc.pi.approvePayment.useMutation();
+  const completePiPaymentMutation = trpc.pi.completePayment.useMutation();
+
+  const handleRequestRide = async () => {
     if (!pickupAddress || !destinationAddress) {
       toast.error('Please enter both pickup and destination addresses');
       return;
@@ -255,6 +262,90 @@ export default function RideBooking() {
       return;
     }
 
+    // Check if Pi SDK is available
+    if (!isPiSDKAvailable()) {
+      toast.error('Pi Network SDK not loaded. Please refresh the page.');
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    try {
+      // Create Pi payment first
+      const payment = await createPiPayment(
+        totalFare,
+        `OpenRide: ${pickupAddress} to ${destinationAddress}`,
+        {
+          rideType: 'standard',
+          pickupAddress,
+          destinationAddress,
+          distance,
+          duration,
+        },
+        {
+          onReadyForServerApproval: async (paymentId) => {
+            try {
+              await approvePiPaymentMutation.mutateAsync({ paymentId });
+            } catch (error) {
+              console.error('Payment approval failed:', error);
+              toast.error('Payment approval failed');
+            }
+          },
+          onReadyForServerCompletion: async (paymentId, txid) => {
+            try {
+              // Create ride request
+              const rideData = await requestRideMutation.mutateAsync({
+                pickupAddress,
+                dropoffAddress: destinationAddress,
+                pickupLat: pickupCoords!.lat.toString(),
+                pickupLng: pickupCoords!.lng.toString(),
+                dropoffLat: dropoffCoords!.lat.toString(),
+                dropoffLng: dropoffCoords!.lng.toString(),
+                estimatedDistance: distance,
+                estimatedDuration: duration,
+                estimatedFare: totalFare,
+              });
+
+              // Complete payment
+              await completePiPaymentMutation.mutateAsync({
+                paymentId,
+                txid,
+                rideId: rideData.rideId,
+                amount: totalFare,
+              });
+
+              setPaymentId(paymentId);
+              setIsProcessingPayment(false);
+              toast.success('Payment completed! Searching for driver...');
+            } catch (error) {
+              console.error('Payment completion failed:', error);
+              toast.error('Payment completion failed');
+              setIsProcessingPayment(false);
+            }
+          },
+          onCancel: (paymentId) => {
+            setPaymentId(null);
+            setIsProcessingPayment(false);
+            toast.info('Payment cancelled');
+          },
+          onError: (error) => {
+            console.error('Payment error:', error);
+            toast.error(`Payment error: ${error.message}`);
+            setIsProcessingPayment(false);
+          },
+        }
+      );
+
+      setPaymentId(payment.identifier);
+    } catch (error: any) {
+      console.error('Failed to create payment:', error);
+      toast.error(`Failed to create payment: ${error.message}`);
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const handleRequestRideOld = () => {
+    if (!pickupCoords || !dropoffCoords) return;
     requestRideMutation.mutate({
       pickupAddress,
       dropoffAddress: destinationAddress,
@@ -519,9 +610,9 @@ export default function RideBooking() {
                   className="w-full" 
                   size="lg"
                   onClick={handleRequestRide}
-                  disabled={requestRideMutation.isPending}
+                  disabled={requestRideMutation.isPending || isProcessingPayment}
                 >
-                  {requestRideMutation.isPending ? 'Requesting...' : 'Request Ride'}
+                  {isProcessingPayment ? 'Processing Payment...' : requestRideMutation.isPending ? 'Requesting...' : 'Request Ride with Pi'}
                 </Button>
               </>
             )}
