@@ -23,9 +23,64 @@ export default defineConfig({
   },
 
   projects: [
+    // Desktop - Chromium (1920x1080, 1366x768)
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'Desktop Chrome 1920x1080',
+      use: { 
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1920, height: 1080 }
+      },
+    },
+    {
+      name: 'Desktop Chrome 1366x768',
+      use: { 
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1366, height: 768 }
+      },
+    },
+
+    // Desktop - Firefox (1920x1080, 1366x768)
+    {
+      name: 'Desktop Firefox 1920x1080',
+      use: { 
+        ...devices['Desktop Firefox'],
+        viewport: { width: 1920, height: 1080 }
+      },
+    },
+    {
+      name: 'Desktop Firefox 1366x768',
+      use: { 
+        ...devices['Desktop Firefox'],
+        viewport: { width: 1366, height: 768 }
+      },
+    },
+
+    // Desktop - WebKit/Safari (1920x1080, 1366x768)
+    {
+      name: 'Desktop Safari 1920x1080',
+      use: { 
+        ...devices['Desktop Safari'],
+        viewport: { width: 1920, height: 1080 }
+      },
+    },
+    {
+      name: 'Desktop Safari 1366x768',
+      use: { 
+        ...devices['Desktop Safari'],
+        viewport: { width: 1366, height: 768 }
+      },
+    },
+
+    // Mobile - iPhone 13
+    {
+      name: 'Mobile Safari iPhone 13',
+      use: { ...devices['iPhone 13'] },
+    },
+
+    // Mobile - Pixel 5
+    {
+      name: 'Mobile Chrome Pixel 5',
+      use: { ...devices['Pixel 5'] },
     },
   ],
 

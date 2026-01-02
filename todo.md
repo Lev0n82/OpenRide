@@ -438,3 +438,29 @@
 - [ ] Test offline functionality
 - [ ] Test push notifications
 - [ ] Verify PWA audit scores (Lighthouse)
+
+## Playwright E2E Testing (Completed)
+- [x] Install Playwright and dependencies
+- [x] Configure playwright.config.ts with 3 browsers (chromium, firefox, webkit)
+- [x] Configure 8 device resolutions (2 desktop per browser + 2 mobile)
+- [x] Write authentication flow tests
+- [x] Write driver application submission tests
+- [x] Write ride booking with payment tests
+- [x] Write DAO governance voting tests
+- [x] Add axe-core accessibility testing
+- [x] Run accessibility test suite on Desktop Chrome 1920x1080
+- [x] Generate test reports
+- [ ] Run full test suite across all 8 browser/device combinations (1328 tests, ~30min runtime)
+
+## Color Contrast & Keyboard Navigation Testing
+- [x] Run axe-core automated audit via Playwright
+- [x] Identify color contrast violations
+- [x] Fix primary button color (blue-700 → blue-800)
+- [x] Fix muted text color (oklch 0.552 → 0.45)
+- [x] Document contrast ratio issues and fixes
+- [ ] Fix remaining custom colored buttons (purple, green)
+- [ ] Verify 7:1 contrast ratio for all text (AAA)
+- [ ] Run Lighthouse accessibility audit
+- [ ] Test keyboard navigation manually on all pages
+- [ ] Verify focus order is logical
+- [ ] Ensure all functionality works without mouse
