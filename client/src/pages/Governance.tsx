@@ -17,101 +17,122 @@ export default function Governance() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="container mx-auto max-w-4xl">
-        <h1 className="text-4xl font-bold mb-8">DAO Governance</h1>
+    <>
+      <a href="#main-content" className="sr-only">
+        Skip to main content
+      </a>
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="container mx-auto max-w-4xl">
+          <header>
+            <h1 className="text-4xl font-bold mb-8">DAO Governance</h1>
+          </header>
 
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>About DAO Governance</CardTitle>
-            <CardDescription>
-              RIDE token holders vote on platform decisions through a three-tier system
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Tier 1: Emergency (24 hours)</h3>
-                <p className="text-gray-600">Critical safety issues, fraud alerts, major bugs</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Tier 2: Operational (3-5 days)</h3>
-                <p className="text-gray-600">Fee adjustments, insurance policies, driver verification</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg mb-2">Tier 3: Strategic (7 days)</h3>
-                <p className="text-gray-600">Major partnerships, platform changes, new features</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Active Proposals</h2>
-          <Button onClick={() => toast.info("Create proposal feature coming soon!")}>
-            Create Proposal
-          </Button>
-        </div>
-
-        {!proposals || proposals.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center text-gray-600">
-              No active proposals at the moment
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-6">
-            {proposals.map((proposal) => (
-              <Card key={proposal.id}>
+          <main id="main-content">
+            {/* About Section */}
+            <section aria-labelledby="about-heading" className="mb-8">
+              <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle>{proposal.title}</CardTitle>
-                      <CardDescription className="mt-2">{proposal.description}</CardDescription>
-                    </div>
-                    <Badge>{proposal.tier}</Badge>
-                  </div>
+                  <CardTitle id="about-heading">About DAO Governance</CardTitle>
+                  <CardDescription>
+                    RIDE token holders vote on platform decisions through a three-tier system
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Clock className="w-4 h-4" />
-                      <span>Ends: {new Date(proposal.votingEndsAt).toLocaleString()}</span>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600">For</p>
-                        <p className="text-2xl font-bold text-green-600">{proposal.votesFor}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Against</p>
-                        <p className="text-2xl font-bold text-red-600">{proposal.votesAgainst}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => vote.mutate({ proposalId: proposal.id, voteChoice: 'for' })}
-                        disabled={vote.isPending}
-                      >
-                        Vote For
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => vote.mutate({ proposalId: proposal.id, voteChoice: 'against' })}
-                        disabled={vote.isPending}
-                      >
-                        Vote Against
-                      </Button>
-                    </div>
+                    <article>
+                      <h2 className="font-semibold text-lg mb-2">Tier 1: Emergency (24 hours)</h2>
+                      <p className="text-gray-600">Critical safety issues, fraud alerts, major bugs</p>
+                    </article>
+                    <article>
+                      <h2 className="font-semibold text-lg mb-2">Tier 2: Operational (3-5 days)</h2>
+                      <p className="text-gray-600">Fee adjustments, insurance policies, driver verification</p>
+                    </article>
+                    <article>
+                      <h2 className="font-semibold text-lg mb-2">Tier 3: Strategic (7 days)</h2>
+                      <p className="text-gray-600">Major partnerships, platform changes, new features</p>
+                    </article>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
+            </section>
+
+            {/* Proposals Section */}
+            <section aria-labelledby="proposals-heading">
+              <div className="flex justify-between items-center mb-6">
+                <h2 id="proposals-heading" className="text-2xl font-bold">Active Proposals</h2>
+                <Button onClick={() => toast.info("Create proposal feature coming soon!")} aria-label="Create a new proposal">
+                  Create Proposal
+                </Button>
+              </div>
+
+              {!proposals || proposals.length === 0 ? (
+                <Card>
+                  <CardContent className="py-12 text-center text-gray-600" role="status">
+                    No active proposals at the moment
+                  </CardContent>
+                </Card>
+              ) : (
+                <ul className="space-y-6" aria-label="List of active governance proposals">
+                  {proposals.map((proposal) => (
+                    <li key={proposal.id}>
+                      <Card>
+                        <CardHeader>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <CardTitle>{proposal.title}</CardTitle>
+                              <CardDescription className="mt-2">{proposal.description}</CardDescription>
+                            </div>
+                            <Badge>{proposal.tier}</Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Clock className="w-4 h-4" aria-hidden="true" />
+                              <time dateTime={new Date(proposal.votingEndsAt).toISOString()}>
+                                Ends: {new Date(proposal.votingEndsAt).toLocaleString()}
+                              </time>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4" role="group" aria-label="Vote counts">
+                              <div>
+                                <p className="text-sm text-gray-600">For</p>
+                                <p className="text-2xl font-bold text-green-600" aria-label={`${proposal.votesFor} votes in favor`}>{proposal.votesFor}</p>
+                              </div>
+                              <div>
+                                <p className="text-sm text-gray-600">Against</p>
+                                <p className="text-2xl font-bold text-red-600" aria-label={`${proposal.votesAgainst} votes against`}>{proposal.votesAgainst}</p>
+                              </div>
+                            </div>
+
+                            <nav aria-label="Voting actions" className="flex gap-2">
+                              <Button
+                                onClick={() => vote.mutate({ proposalId: proposal.id, voteChoice: 'for' })}
+                                disabled={vote.isPending}
+                                aria-label={`Vote in favor of ${proposal.title}`}
+                              >
+                                Vote For
+                              </Button>
+                              <Button
+                                variant="outline"
+                                onClick={() => vote.mutate({ proposalId: proposal.id, voteChoice: 'against' })}
+                                disabled={vote.isPending}
+                                aria-label={`Vote against ${proposal.title}`}
+                              >
+                                Vote Against
+                              </Button>
+                            </nav>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

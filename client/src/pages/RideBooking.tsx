@@ -369,7 +369,10 @@ export default function RideBooking() {
   if (rideStatus) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="h-[60vh] relative">
+        <a href="#ride-status-content" className="sr-only">
+          Skip to ride status
+        </a>
+        <div className="h-[60vh] relative" role="region" aria-label="Live map showing driver location">
           <MapView
             initialCenter={pickupCoords || { lat: 43.6532, lng: -79.3832 }}
             initialZoom={14}
@@ -381,42 +384,43 @@ export default function RideBooking() {
             size="icon"
             className="absolute top-4 right-4 bg-white shadow-lg"
             onClick={handleCancelRide}
+            aria-label="Cancel ride"
           >
-            <X className="h-4 w-4" />
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>
         
-        <div className="container max-w-4xl mx-auto p-4">
+        <main id="ride-status-content" className="container max-w-4xl mx-auto p-4">
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 {rideStatus === 'searching' && (
                   <>
-                    <Navigation className="h-5 w-5 animate-pulse text-blue-600" />
+                    <Navigation className="h-5 w-5 animate-pulse text-blue-600" aria-hidden="true" />
                     Searching for Driver...
                   </>
                 )}
                 {rideStatus === 'matched' && (
                   <>
-                    <Car className="h-5 w-5 text-green-600" />
+                    <Car className="h-5 w-5 text-green-600" aria-hidden="true" />
                     Driver Found!
                   </>
                 )}
                 {rideStatus === 'driver_arriving' && (
                   <>
-                    <Navigation className="h-5 w-5 text-orange-600" />
+                    <Navigation className="h-5 w-5 text-orange-600" aria-hidden="true" />
                     Driver is on the way
                   </>
                 )}
                 {rideStatus === 'in_progress' && (
                   <>
-                    <Car className="h-5 w-5 text-blue-600" />
+                    <Car className="h-5 w-5 text-blue-600" aria-hidden="true" />
                     Ride in Progress
                   </>
                 )}
                 {rideStatus === 'completed' && (
                   <>
-                    <Star className="h-5 w-5 text-yellow-600" />
+                    <Star className="h-5 w-5 text-yellow-600" aria-hidden="true" />
                     Ride Completed
                   </>
                 )}
@@ -431,17 +435,18 @@ export default function RideBooking() {
             </CardHeader>
             <CardContent className="space-y-4">
               {matchedDriver && (
-                <>
+                <section aria-labelledby="driver-info-heading">
+                  <h2 id="driver-info-heading" className="sr-only">Driver Information</h2>
                   <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center" aria-hidden="true">
                         <User className="h-6 w-6 text-primary" />
                       </div>
                       <div>
                         <p className="font-semibold">{matchedDriver.name}</p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span>{matchedDriver.rating}</span>
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
+                          <span aria-label={`Driver rating: ${matchedDriver.rating} out of 5 stars`}>{matchedDriver.rating}</span>
                         </div>
                       </div>
                     </div>
@@ -455,64 +460,71 @@ export default function RideBooking() {
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Phone className="h-5 w-5 text-muted-foreground" />
+                      <Phone className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                       <span className="text-sm">{matchedDriver.phone}</span>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" aria-label="Call driver">
                       Call Driver
                     </Button>
                   </div>
-                </>
+                </section>
               )}
               
               <Separator />
               
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-green-600" />
+              <section aria-labelledby="trip-details-heading">
+                <h2 id="trip-details-heading" className="sr-only">Trip Details</h2>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-green-600" aria-hidden="true" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">Pickup</p>
                     <p className="text-sm text-muted-foreground">{pickupAddress}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-red-600" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Dropoff</p>
-                    <p className="text-sm text-muted-foreground">{destinationAddress}</p>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-red-600" aria-hidden="true" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Dropoff</p>
+                      <p className="text-sm text-muted-foreground">{destinationAddress}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </section>
               
               <Separator />
               
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <p className="text-2xl font-bold">{distance.toFixed(1)} km</p>
-                  <p className="text-sm text-muted-foreground">Distance</p>
+              <section aria-labelledby="ride-stats-heading">
+                <h2 id="ride-stats-heading" className="sr-only">Ride Statistics</h2>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold" aria-label={`Distance: ${distance.toFixed(1)} kilometers`}>{distance.toFixed(1)} km</p>
+                    <p className="text-sm text-muted-foreground">Distance</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold" aria-label={`Duration: ${Math.round(duration)} minutes`}>{Math.round(duration)} min</p>
+                    <p className="text-sm text-muted-foreground">Duration</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold" aria-label={`Total fare: $${totalFare.toFixed(2)}`}>${totalFare.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">Total Fare</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{Math.round(duration)} min</p>
-                  <p className="text-sm text-muted-foreground">Duration</p>
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">${totalFare.toFixed(2)}</p>
-                  <p className="text-sm text-muted-foreground">Total Fare</p>
-                </div>
-              </div>
+              </section>
               
               {rideStatus === 'searching' && (
                 <Button 
                   variant="destructive" 
                   className="w-full"
                   onClick={handleCancelRide}
+                  aria-label="Cancel ride request"
                 >
                   Cancel Ride Request
                 </Button>
               )}
             </CardContent>
           </Card>
-        </div>
+        </main>
       </div>
     );
   }
@@ -520,7 +532,10 @@ export default function RideBooking() {
   // Render booking form
   return (
     <div className="min-h-screen bg-background">
-      <div className="h-[60vh] relative">
+      <a href="#booking-form" className="sr-only">
+        Skip to booking form
+      </a>
+      <div className="h-[60vh] relative" role="region" aria-label="Interactive map for selecting pickup and destination">
         <MapView
           initialCenter={{ lat: 43.6532, lng: -79.3832 }}
           initialZoom={12}
@@ -529,7 +544,7 @@ export default function RideBooking() {
         />
       </div>
       
-      <div className="container max-w-4xl mx-auto p-4">
+      <main id="booking-form" className="container max-w-4xl mx-auto p-4">
         <Card className="shadow-lg -mt-20 relative z-10">
           <CardHeader>
             <CardTitle>Book a Ride</CardTitle>
@@ -541,45 +556,52 @@ export default function RideBooking() {
             <div className="space-y-2">
               <Label htmlFor="pickup-address">Pickup Location</Label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-green-600" />
+                <MapPin className="absolute left-3 top-3 h-4 w-4 text-green-600" aria-hidden="true" />
                 <Input
                   id="pickup-address"
                   placeholder="Enter pickup address"
                   value={pickupAddress}
                   onChange={(e) => setPickupAddress(e.target.value)}
                   className="pl-10"
+                  aria-label="Pickup location address"
+                  aria-describedby="pickup-help"
                 />
+                <span id="pickup-help" className="sr-only">Start typing to search for a pickup location</span>
               </div>
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="dropoff-address">Destination</Label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-red-600" />
+                <MapPin className="absolute left-3 top-3 h-4 w-4 text-red-600" aria-hidden="true" />
                 <Input
                   id="dropoff-address"
                   placeholder="Enter destination address"
                   value={destinationAddress}
                   onChange={(e) => setDestinationAddress(e.target.value)}
                   className="pl-10"
+                  aria-label="Destination address"
+                  aria-describedby="dropoff-help"
                 />
+                <span id="dropoff-help" className="sr-only">Start typing to search for a destination</span>
               </div>
             </div>
             
             {pickupCoords && dropoffCoords && (
-              <>
+              <section aria-labelledby="fare-estimate-heading">
+                <h2 id="fare-estimate-heading" className="sr-only">Fare Estimate</h2>
                 <Separator />
                 
                 <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Navigation className="h-5 w-5 text-muted-foreground" />
+                    <Navigation className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                     <div>
                       <p className="text-sm text-muted-foreground">Distance</p>
                       <p className="font-semibold">{distance.toFixed(1)} km</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-muted-foreground" />
+                    <Clock className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
                     <div>
                       <p className="text-sm text-muted-foreground">Duration</p>
                       <p className="font-semibold">{Math.round(duration)} min</p>
@@ -611,14 +633,15 @@ export default function RideBooking() {
                   size="lg"
                   onClick={handleRequestRide}
                   disabled={requestRideMutation.isPending || isProcessingPayment}
+                  aria-label="Request ride and pay with Pi cryptocurrency"
                 >
                   {isProcessingPayment ? 'Processing Payment...' : requestRideMutation.isPending ? 'Requesting...' : 'Request Ride with Pi'}
                 </Button>
-              </>
+              </section>
             )}
           </CardContent>
         </Card>
-      </div>
+      </main>
     </div>
   );
 }

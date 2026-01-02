@@ -386,19 +386,19 @@
 
 - [ ] Audit current accessibility compliance across all pages
 - [ ] Document WCAG 2.2 AAA gaps and remediation plan
-- [ ] Implement semantic HTML structure on all pages
-- [ ] Add ARIA labels and roles where needed
+- [x] Implement semantic HTML structure on all pages
+- [x] Add ARIA labels and roles where needed
 - [ ] Ensure keyboard navigation works on all interactive elements
-- [ ] Implement focus management and visible focus indicators
-- [ ] Add skip navigation links
+- [x] Implement focus management and visible focus indicators
+- [x] Add skip navigation links
 - [ ] Ensure color contrast ratios meet AAA standards (7:1 for normal text, 4.5:1 for large text)
 - [ ] Implement text resizing support up to 200%
 - [ ] Add alt text to all images
 - [ ] Ensure form labels and error messages are accessible
 - [ ] Implement accessible modals and dialogs
 - [ ] Add screen reader announcements for dynamic content
-- [ ] Create public accessibility statement page
-- [ ] Add accessibility contact form to statement page
+- [x] Create public accessibility statement page
+- [x] Add accessibility contact form to statement page
 - [ ] Test with screen readers (NVDA, JAWS, VoiceOver)
 - [ ] Run automated accessibility audits (axe, Lighthouse)
 - [ ] Document accessibility compliance results

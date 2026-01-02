@@ -348,7 +348,9 @@ export default function DriverApplication() {
   
   if (applicationData?.application?.status === 'rejected') {
     return (
-      <div className="container max-w-2xl py-8">
+      <>
+        <a href="#main-content" className="sr-only">Skip to main content</a>
+        <main id="main-content" className="container max-w-2xl py-8">
         <Card>
           <CardHeader>
             <CardTitle className="text-red-600">Application Rejected</CardTitle>
@@ -372,7 +374,8 @@ export default function DriverApplication() {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </main>
+    </>
     );
   }
   
