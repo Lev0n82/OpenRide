@@ -434,3 +434,11 @@
 - [x] Document visual regression testing workflow (visual-regression-testing.md)
 - [ ] Get Chromatic project token and run initial baseline
 - [ ] Add visual regression tests to CI/CD pipeline
+
+## Chromatic Playwright Integration (Completed)
+- [x] Install chromatic package (13.3.4)
+- [x] Install @chromatic-com/playwright package (0.12.8)
+- [x] Configure Chromatic with Playwright tests (playwright.config.ts)
+- [x] Update visual regression documentation with Playwright integration
+- [ ] Get Chromatic project token from chromatic.com
+- [ ] Run initial baseline: pnpm exec chromatic --playwright

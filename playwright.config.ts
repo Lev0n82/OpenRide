@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { chromaticPlugin } from '@chromatic-com/playwright';
 
 /**
  * Playwright configuration for OpenRide E2E testing
@@ -21,6 +22,14 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
   },
+
+  // Chromatic plugin for visual regression testing
+  plugins: [
+    chromaticPlugin({
+      // Configure with environment variable: CHROMATIC_PROJECT_TOKEN
+      // Run: npx chromatic --playwright
+    }),
+  ],
 
   projects: [
     {

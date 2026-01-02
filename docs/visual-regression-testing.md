@@ -17,10 +17,10 @@ Visual regression testing captures screenshots of your application and compares 
 ### 1. Install Chromatic
 
 ```bash
-pnpm add -D chromatic
+pnpm add -D chromatic @chromatic-com/playwright
 ```
 
-✅ **Already installed** in this project
+✅ **Already installed** in this project (chromatic 13.3.4, @chromatic-com/playwright 0.12.8)
 
 ### 2. Get Chromatic Project Token
 
@@ -45,14 +45,23 @@ export CHROMATIC_PROJECT_TOKEN=your_token_here
 
 ## Usage
 
-### Capture Baseline Snapshots
+### Capture Baseline Snapshots with Playwright
 
-First run establishes the baseline:
+Chromatic is now integrated with Playwright tests:
 
 ```bash
-# Capture all pages
-pnpm exec chromatic --project-token=<your-token>
+# Set your Chromatic project token
+export CHROMATIC_PROJECT_TOKEN=your_token_here
+
+# Run Playwright tests with Chromatic visual snapshots
+pnpm exec chromatic --playwright
 ```
+
+This will:
+1. Run all Playwright tests
+2. Capture visual snapshots at key points
+3. Upload snapshots to Chromatic for comparison
+4. Generate a report with visual diffs
 
 ### Run Visual Regression Tests
 
@@ -60,7 +69,10 @@ Subsequent runs compare against baseline:
 
 ```bash
 # Compare current state to baseline
-pnpm exec chromatic --project-token=<your-token>
+pnpm exec chromatic --playwright
+
+# Or run specific tests
+pnpm exec chromatic --playwright --only-changed
 ```
 
 ### Accept Changes
@@ -71,6 +83,59 @@ When intentional changes are detected:
 # Accept all changes as new baseline
 pnpm exec chromatic --auto-accept-changes
 ```
+
+---
+
+## Playwright Integration
+
+### How It Works
+
+The `@chromatic-com/playwright` plugin automatically:
+1. **Captures snapshots** during Playwright test execution
+2. **Uploads to Chromatic** for visual comparison
+3. **Detects changes** by comparing with baseline
+4. **Reports results** in Chromatic dashboard
+
+### Configuration
+
+Already configured in `playwright.config.ts`:
+
+```typescript
+import { chromaticPlugin } from '@chromatic-com/playwright';
+
+export default defineConfig({
+  plugins: [
+    chromaticPlugin({
+      // Configure with environment variable: CHROMATIC_PROJECT_TOKEN
+    }),
+  ],
+});
+```
+
+### Taking Snapshots in Tests
+
+Add visual snapshots to your Playwright tests:
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test('homepage visual test', async ({ page }) => {
+  await page.goto('/');
+  
+  // Wait for page to be fully loaded
+  await page.waitForLoadState('networkidle');
+  
+  // Take a visual snapshot (automatically sent to Chromatic)
+  await expect(page).toHaveScreenshot('homepage.png');
+});
+```
+
+### Best Practices
+
+1. **Stable selectors** - Use data-testid for consistent element targeting
+2. **Wait for content** - Use `waitForLoadState('networkidle')` before snapshots
+3. **Mask dynamic content** - Hide timestamps, user-specific data
+4. **Consistent viewport** - Define viewport sizes in config
 
 ---
 
@@ -97,11 +162,13 @@ jobs:
       
       - run: pnpm install
       
-      - name: Run Chromatic
-        uses: chromaui/action@v1
-        with:
-          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
-          exitZeroOnChanges: true  # Don't fail PR on changes
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+      
+      - name: Run Chromatic with Playwright
+        run: pnpm exec chromatic --playwright
+        env:
+          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
 ```
 
 ### Add Secret to GitHub
