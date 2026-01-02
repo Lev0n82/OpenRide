@@ -348,9 +348,7 @@ export default function DriverApplication() {
   
   if (applicationData?.application?.status === 'rejected') {
     return (
-      <>
-        <a href="#main-content" className="sr-only">Skip to main content</a>
-        <main id="main-content" className="container max-w-2xl py-8">
+      <div className="container max-w-2xl py-8">
         <Card>
           <CardHeader>
             <CardTitle className="text-red-600">Application Rejected</CardTitle>
@@ -374,8 +372,7 @@ export default function DriverApplication() {
             </Button>
           </CardContent>
         </Card>
-      </main>
-    </>
+      </div>
     );
   }
   
@@ -398,7 +395,7 @@ export default function DriverApplication() {
                   currentStep === step
                     ? 'border-primary bg-primary text-primary-foreground'
                     : isStepComplete(step)
-                    ? 'border-green-800 bg-green-800 text-white'
+                    ? 'border-green-600 bg-green-600 text-white'
                     : 'border-gray-300 bg-white text-gray-400'
                 }`}
               >
@@ -413,7 +410,7 @@ export default function DriverApplication() {
             {index < 4 && (
               <div
                 className={`h-0.5 w-12 ${
-                  isStepComplete(step) ? 'bg-green-800' : 'bg-gray-300'
+                  isStepComplete(step) ? 'bg-green-600' : 'bg-gray-300'
                 }`}
               />
             )}

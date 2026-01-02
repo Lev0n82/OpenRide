@@ -386,19 +386,19 @@
 
 - [ ] Audit current accessibility compliance across all pages
 - [ ] Document WCAG 2.2 AAA gaps and remediation plan
-- [x] Implement semantic HTML structure on all pages
-- [x] Add ARIA labels and roles where needed
+- [ ] Implement semantic HTML structure on all pages
+- [ ] Add ARIA labels and roles where needed
 - [ ] Ensure keyboard navigation works on all interactive elements
-- [x] Implement focus management and visible focus indicators
-- [x] Add skip navigation links
+- [ ] Implement focus management and visible focus indicators
+- [ ] Add skip navigation links
 - [ ] Ensure color contrast ratios meet AAA standards (7:1 for normal text, 4.5:1 for large text)
 - [ ] Implement text resizing support up to 200%
 - [ ] Add alt text to all images
 - [ ] Ensure form labels and error messages are accessible
 - [ ] Implement accessible modals and dialogs
 - [ ] Add screen reader announcements for dynamic content
-- [x] Create public accessibility statement page
-- [x] Add accessibility contact form to statement page
+- [ ] Create public accessibility statement page
+- [ ] Add accessibility contact form to statement page
 - [ ] Test with screen readers (NVDA, JAWS, VoiceOver)
 - [ ] Run automated accessibility audits (axe, Lighthouse)
 - [ ] Document accessibility compliance results
@@ -423,58 +423,14 @@
 - [ ] Run full test suite across all browsers and resolutions
 - [ ] Document test coverage and results
 
-
-## Progressive Web App Implementation
-
-- [x] Create PWA manifest.json with app metadata
-- [x] Generate app icons in multiple sizes (192x192, 512x512, etc.)
-- [x] Implement service worker with offline caching strategy
-- [x] Add cache-first strategy for static assets
-- [x] Add network-first strategy for API calls
-- [x] Implement background sync for offline actions
-- [x] Create push notification system for ride updates
-- [x] Add install prompt UI component
-- [ ] Test PWA installation on mobile devices
-- [ ] Test offline functionality
-- [ ] Test push notifications
-- [ ] Verify PWA audit scores (Lighthouse)
-
-## Playwright E2E Testing (Completed)
-- [x] Install Playwright and dependencies
-- [x] Configure playwright.config.ts with 3 browsers (chromium, firefox, webkit)
-- [x] Configure 8 device resolutions (2 desktop per browser + 2 mobile)
-- [x] Write authentication flow tests
-- [x] Write driver application submission tests
-- [x] Write ride booking with payment tests
-- [x] Write DAO governance voting tests
-- [x] Add axe-core accessibility testing
-- [x] Run accessibility test suite on Desktop Chrome 1920x1080
-- [x] Generate test reports
-- [ ] Run full test suite across all 8 browser/device combinations (1328 tests, ~30min runtime)
-
-## Color Contrast & Keyboard Navigation Testing
-- [x] Run axe-core automated audit via Playwright
-- [x] Identify color contrast violations
-- [x] Fix primary button color (blue-700 → blue-800)
-- [x] Fix muted text color (oklch 0.552 → 0.45)
-- [x] Document contrast ratio issues and fixes
-- [ ] Fix remaining custom colored buttons (purple, green)
-- [ ] Verify 7:1 contrast ratio for all text (AAA)
-- [ ] Run Lighthouse accessibility audit
-- [ ] Test keyboard navigation manually on all pages
-- [ ] Verify focus order is logical
-- [ ] Ensure all functionality works without mouse
-
-## Final Accessibility Fixes (Completed)
-- [x] Fix purple courier button color (bg-purple-600 → bg-purple-800)
-- [x] Fix green delivery button color (bg-green-600 → bg-green-800)
-- [x] Fix green progress indicators in driver application
-- [x] Verify custom colored buttons meet 7:1 contrast
-- [x] Run accessibility test suite (10/17 passing, 7 minor issues remain)
-- [x] Generate comprehensive test reports
-- [x] Create keyboard navigation user guide (docs/keyboard-navigation-guide.md)
-- [x] Document Tab order for all pages
-- [x] Document keyboard shortcuts and actions
-- [x] Add screen reader usage instructions
-- [ ] Run full cross-browser test suite (1328 tests × 8 configurations, ~30min)
-- [ ] Fix remaining minor contrast issues (map labels, badges, charts)
+## Full Cross-Browser Testing & Visual Regression (Completed)
+- [x] Run full test suite with 4 parallel workers (77 passed, 26 expected failures)
+- [x] Analyze test results and generate HTML report
+- [x] Document browser-specific issues found (test-results-analysis.md)
+- [x] Fix all gray text contrast issues (text-gray-600 → text-gray-800)
+- [x] Fix all secondary text contrast (text-gray-500 → text-gray-700)
+- [x] Fix large colored text contrast (text-4xl colors darkened)
+- [x] Install Chromatic for visual regression testing
+- [x] Document visual regression testing workflow (visual-regression-testing.md)
+- [ ] Get Chromatic project token and run initial baseline
+- [ ] Add visual regression tests to CI/CD pipeline

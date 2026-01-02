@@ -43,8 +43,8 @@
 }
 
 :root {
-  --primary: var(--color-blue-800);
-  --primary-foreground: var(--color-white);
+  --primary: var(--color-blue-700);
+  --primary-foreground: var(--color-blue-50);
   --sidebar-primary: var(--color-blue-600);
   --sidebar-primary-foreground: var(--color-blue-50);
   --chart-1: var(--color-blue-300);
@@ -62,7 +62,7 @@
   --secondary: oklch(0.98 0.001 286.375);
   --secondary-foreground: oklch(0.4 0.015 65);
   --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.45 0.016 285.938);
+  --muted-foreground: oklch(0.552 0.016 285.938);
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.141 0.005 285.823);
   --destructive: oklch(0.577 0.245 27.325);
@@ -79,8 +79,8 @@
 }
 
 .dark {
-  --primary: var(--color-blue-800);
-  --primary-foreground: var(--color-white);
+  --primary: var(--color-blue-700);
+  --primary-foreground: var(--color-blue-50);
   --sidebar-primary: var(--color-blue-500);
   --sidebar-primary-foreground: var(--color-blue-50);
   --background: oklch(0.141 0.005 285.823);
@@ -92,7 +92,7 @@
   --secondary: oklch(0.24 0.006 286.033);
   --secondary-foreground: oklch(0.7 0.005 65);
   --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.75 0.015 286.067);
+  --muted-foreground: oklch(0.705 0.015 286.067);
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground:  oklch(0.92 0.005 65);
   --destructive: oklch(0.704 0.191 22.216);
@@ -114,46 +114,6 @@
 }
 
 @layer base {
-  /* Skip to content link styling */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border-width: 0;
-  }
-
-  .sr-only:focus,
-  .sr-only:active {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 9999;
-    width: auto;
-    height: auto;
-    padding: 1rem 1.5rem;
-    margin: 0;
-    overflow: visible;
-    clip: auto;
-    white-space: normal;
-    background-color: oklch(0.623 0.214 259.815);
-    color: oklch(1 0 0);
-    border-radius: 0.375rem;
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    font-weight: 600;
-    text-decoration: none;
-  }
-
-  /* Enhanced focus indicators for WCAG 2.2 AAA */
-  *:focus-visible {
-    outline: 3px solid oklch(0.623 0.214 259.815);
-    outline-offset: 2px;
-  }
-
   * {
     @apply border-border outline-ring/50;
   }

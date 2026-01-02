@@ -24,7 +24,7 @@ export default function Tokens() {
               <Coins className="w-16 h-16 text-purple-600" />
               <div>
                 <p className="text-5xl font-bold">{user?.rideTokenBalance || 0}</p>
-                <p className="text-gray-600 mt-2">RIDE Tokens</p>
+                <p className="text-gray-800 mt-2">RIDE Tokens</p>
               </div>
             </div>
           </CardContent>
@@ -37,15 +37,15 @@ export default function Tokens() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-600">Driver Reward:</span>
+                <span className="text-gray-800">Driver Reward:</span>
                 <span className="font-semibold">10 RIDE per ride</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Rider Reward:</span>
+                <span className="text-gray-800">Rider Reward:</span>
                 <span className="font-semibold">1 RIDE per ride</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Buyback Fee:</span>
+                <span className="text-gray-800">Buyback Fee:</span>
                 <span className="font-semibold">0.5% of fares</span>
               </div>
             </CardContent>
@@ -61,12 +61,12 @@ export default function Tokens() {
                   <p className="text-3xl font-bold text-purple-600">
                     {buybackHistory[0].tokensBurned}
                   </p>
-                  <p className="text-sm text-gray-600 mt-2">
+                  <p className="text-sm text-gray-800 mt-2">
                     Tokens burned on {new Date(buybackHistory[0].executedAt).toLocaleDateString()}
                   </p>
                 </div>
               ) : (
-                <p className="text-gray-600">No buybacks yet</p>
+                <p className="text-gray-800">No buybacks yet</p>
               )}
             </CardContent>
           </Card>
@@ -78,15 +78,15 @@ export default function Tokens() {
           </CardHeader>
           <CardContent>
             {!tokenData?.transactions || tokenData.transactions.length === 0 ? (
-              <p className="text-gray-600">No transactions yet</p>
+              <p className="text-gray-800">No transactions yet</p>
             ) : (
               <div className="space-y-4">
                 {tokenData.transactions.slice(0, 20).map((tx) => (
                   <div key={tx.id} className="flex justify-between items-center border-b pb-4">
                     <div>
                       <p className="font-semibold">{tx.transactionType}</p>
-                      <p className="text-sm text-gray-600">{tx.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-sm text-gray-800">{tx.description}</p>
+                      <p className="text-xs text-gray-700 mt-1">
                         {new Date(tx.createdAt).toLocaleString()}
                       </p>
                     </div>

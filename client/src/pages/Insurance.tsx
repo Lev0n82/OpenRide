@@ -17,7 +17,7 @@ export default function Insurance() {
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Reserves</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Total Reserves</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
@@ -31,7 +31,7 @@ export default function Insurance() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Claims</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Total Claims</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ export default function Insurance() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Paid</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Total Paid</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
@@ -66,7 +66,7 @@ export default function Insurance() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
+            <p className="text-gray-800 mb-4">
               OpenRide's decentralized insurance model ensures full coverage for all rides while
               keeping costs low. The pool is managed by the DAO and backed by traditional reinsurance.
             </p>
@@ -82,15 +82,15 @@ export default function Insurance() {
           </CardHeader>
           <CardContent>
             {!myClaims || myClaims.length === 0 ? (
-              <p className="text-gray-600">No claims filed yet</p>
+              <p className="text-gray-800">No claims filed yet</p>
             ) : (
               <div className="space-y-4">
                 {myClaims.map((claim) => (
                   <div key={claim.id} className="flex justify-between items-center border-b pb-4">
                     <div>
                       <p className="font-semibold">{claim.claimType}</p>
-                      <p className="text-sm text-gray-600">{claim.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-sm text-gray-800">{claim.description}</p>
+                      <p className="text-xs text-gray-700 mt-1">
                         {new Date(claim.createdAt).toLocaleDateString()}
                       </p>
                     </div>

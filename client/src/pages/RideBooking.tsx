@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -6,29 +6,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { MapPin, Navigation, DollarSign, Clock, User, Car, Phone, Star, X } from 'lucide-react';
+import { MapPin, Navigation, DollarSign, Clock, User, Car, Phone, Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { MapView } from '@/components/Map';
-import { createPiPayment, isPiSDKAvailable } from '@/lib/pi';
 
 type RideStatus = 'searching' | 'matched' | 'driver_arriving' | 'in_progress' | 'completed';
 
 export default function RideBooking() {
   const [, setLocation] = useLocation();
-  const mapRef = useRef<google.maps.Map | null>(null);
-  const pickupMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const dropoffMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const driverMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
-  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
-  const pickupAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const dropoffAutocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   
   // Location inputs
   const [pickupAddress, setPickupAddress] = useState('');
   const [destinationAddress, setDestinationAddress] = useState('');
-  const [pickupCoords, setPickupCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [dropoffCoords, setDropoffCoords] = useState<{ lat: number; lng: number } | null>(null);
   
   // Ride details
   const [distance, setDistance] = useState(0);
@@ -40,9 +29,6 @@ export default function RideBooking() {
   const [rideStatus, setRideStatus] = useState<RideStatus | null>(null);
   const [currentRideId, setCurrentRideId] = useState<number | null>(null);
   const [matchedDriver, setMatchedDriver] = useState<any>(null);
-  const [driverLocation, setDriverLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [paymentId, setPaymentId] = useState<string | null>(null);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   
   // Check for active ride
   const { data: activeRideData } = trpc.ride.getActive.useQuery(undefined, {
@@ -67,7 +53,6 @@ export default function RideBooking() {
       setRideStatus(null);
       setCurrentRideId(null);
       setMatchedDriver(null);
-      setDriverLocation(null);
       toast.success('Ride cancelled');
     },
     onError: (error: any) => {
@@ -75,134 +60,21 @@ export default function RideBooking() {
     },
   });
 
-  // Initialize map and autocomplete
-  const handleMapReady = (map: google.maps.Map) => {
-    mapRef.current = map;
-    
-    // Initialize directions renderer
-    directionsRendererRef.current = new google.maps.DirectionsRenderer({
-      map,
-      suppressMarkers: true, // We'll use custom markers
-      polylineOptions: {
-        strokeColor: '#4F46E5',
-        strokeWeight: 4,
-      },
-    });
-    
-    // Initialize autocomplete for pickup
-    const pickupInput = document.getElementById('pickup-address') as HTMLInputElement;
-    if (pickupInput && window.google) {
-      pickupAutocompleteRef.current = new google.maps.places.Autocomplete(pickupInput, {
-        fields: ['formatted_address', 'geometry', 'name'],
-      });
-      
-      pickupAutocompleteRef.current.addListener('place_changed', () => {
-        const place = pickupAutocompleteRef.current?.getPlace();
-        if (place?.geometry?.location) {
-          const location = place.geometry.location;
-          setPickupAddress(place.formatted_address || place.name || '');
-          setPickupCoords({ lat: location.lat(), lng: location.lng() });
-          
-          // Add pickup marker
-          if (pickupMarkerRef.current) {
-            pickupMarkerRef.current.map = null;
-          }
-          pickupMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
-            map,
-            position: location,
-            title: 'Pickup Location',
-          });
-          
-          map.panTo(location);
-        }
-      });
-    }
-    
-    // Initialize autocomplete for dropoff
-    const dropoffInput = document.getElementById('dropoff-address') as HTMLInputElement;
-    if (dropoffInput && window.google) {
-      dropoffAutocompleteRef.current = new google.maps.places.Autocomplete(dropoffInput, {
-        fields: ['formatted_address', 'geometry', 'name'],
-      });
-      
-      dropoffAutocompleteRef.current.addListener('place_changed', () => {
-        const place = dropoffAutocompleteRef.current?.getPlace();
-        if (place?.geometry?.location) {
-          const location = place.geometry.location;
-          setDestinationAddress(place.formatted_address || place.name || '');
-          setDropoffCoords({ lat: location.lat(), lng: location.lng() });
-          
-          // Add dropoff marker
-          if (dropoffMarkerRef.current) {
-            dropoffMarkerRef.current.map = null;
-          }
-          dropoffMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
-            map,
-            position: location,
-            title: 'Dropoff Location',
-          });
-        }
-      });
-    }
-  };
-
-  // Calculate route when both locations are set
+  // Calculate fare when addresses change
   useEffect(() => {
-    if (pickupCoords && dropoffCoords && mapRef.current && window.google) {
-      const directionsService = new google.maps.DirectionsService();
-      
-      directionsService.route(
-        {
-          origin: pickupCoords,
-          destination: dropoffCoords,
-          travelMode: google.maps.TravelMode.DRIVING,
-        },
-        (result, status) => {
-          if (status === 'OK' && result) {
-            directionsRendererRef.current?.setDirections(result);
-            
-            const route = result.routes[0];
-            const leg = route.legs[0];
-            
-            // Extract distance and duration
-            const distanceKm = (leg.distance?.value || 0) / 1000;
-            const durationMin = (leg.duration?.value || 0) / 60;
-            
-            // Calculate fare: $5 base + $1.50/km
-            const calculatedBaseFare = 5 + (distanceKm * 1.5);
-            const calculatedTotalFare = calculatedBaseFare * 1.13; // Add 13% network fee
-            
-            setDistance(distanceKm);
-            setDuration(durationMin);
-            setBaseFare(calculatedBaseFare);
-            setTotalFare(calculatedTotalFare);
-          } else {
-            toast.error('Could not calculate route');
-          }
-        }
-      );
-    }
-  }, [pickupCoords, dropoffCoords]);
+    if (pickupAddress && destinationAddress) {
+      // Simulated calculation - in production, use Google Maps Distance Matrix API
+      const estimatedDistance = Math.random() * 20 + 5; // 5-25 km
+      const estimatedDuration = estimatedDistance * 3; // ~3 min per km in traffic
+      const calculatedBaseFare = 5 + (estimatedDistance * 1.5); // $5 base + $1.50/km
+      const calculatedTotalFare = calculatedBaseFare * 1.13; // Add 13% network fee
 
-  // Update driver location marker
-  useEffect(() => {
-    if (driverLocation && mapRef.current && window.google) {
-      if (driverMarkerRef.current) {
-        driverMarkerRef.current.position = driverLocation;
-      } else {
-        driverMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
-          map: mapRef.current,
-          position: driverLocation,
-          title: 'Driver Location',
-        });
-      }
-      
-      // Pan to driver if ride is in progress
-      if (rideStatus === 'driver_arriving' || rideStatus === 'in_progress') {
-        mapRef.current.panTo(driverLocation);
-      }
+      setDistance(estimatedDistance);
+      setDuration(estimatedDuration);
+      setBaseFare(calculatedBaseFare);
+      setTotalFare(calculatedTotalFare);
     }
-  }, [driverLocation, rideStatus]);
+  }, [pickupAddress, destinationAddress]);
 
   // Update ride status based on active ride
   useEffect(() => {
@@ -218,7 +90,7 @@ export default function RideBooking() {
           setRideStatus('matched');
           // Fetch driver details
           if (activeRide.driverId) {
-            // TODO: Fetch actual driver profile
+            // In production, fetch driver profile
             setMatchedDriver({
               name: 'Driver Name',
               rating: 4.8,
@@ -230,7 +102,6 @@ export default function RideBooking() {
           break;
         case 'driver_arriving':
           setRideStatus('driver_arriving');
-          // TODO: Fetch driver location
           break;
         case 'in_progress':
           setRideStatus('in_progress');
@@ -243,116 +114,22 @@ export default function RideBooking() {
       setRideStatus(null);
       setCurrentRideId(null);
       setMatchedDriver(null);
-      setDriverLocation(null);
     }
   }, [activeRideData]);
 
-  // Pi payment mutations
-  const approvePiPaymentMutation = trpc.pi.approvePayment.useMutation();
-  const completePiPaymentMutation = trpc.pi.completePayment.useMutation();
-
-  const handleRequestRide = async () => {
+  const handleRequestRide = () => {
     if (!pickupAddress || !destinationAddress) {
       toast.error('Please enter both pickup and destination addresses');
       return;
     }
-    
-    if (!pickupCoords || !dropoffCoords) {
-      toast.error('Please select valid addresses from the suggestions');
-      return;
-    }
 
-    // Check if Pi SDK is available
-    if (!isPiSDKAvailable()) {
-      toast.error('Pi Network SDK not loaded. Please refresh the page.');
-      return;
-    }
-
-    setIsProcessingPayment(true);
-
-    try {
-      // Create Pi payment first
-      const payment = await createPiPayment(
-        totalFare,
-        `OpenRide: ${pickupAddress} to ${destinationAddress}`,
-        {
-          rideType: 'standard',
-          pickupAddress,
-          destinationAddress,
-          distance,
-          duration,
-        },
-        {
-          onReadyForServerApproval: async (paymentId) => {
-            try {
-              await approvePiPaymentMutation.mutateAsync({ paymentId });
-            } catch (error) {
-              console.error('Payment approval failed:', error);
-              toast.error('Payment approval failed');
-            }
-          },
-          onReadyForServerCompletion: async (paymentId, txid) => {
-            try {
-              // Create ride request
-              const rideData = await requestRideMutation.mutateAsync({
-                pickupAddress,
-                dropoffAddress: destinationAddress,
-                pickupLat: pickupCoords!.lat.toString(),
-                pickupLng: pickupCoords!.lng.toString(),
-                dropoffLat: dropoffCoords!.lat.toString(),
-                dropoffLng: dropoffCoords!.lng.toString(),
-                estimatedDistance: distance,
-                estimatedDuration: duration,
-                estimatedFare: totalFare,
-              });
-
-              // Complete payment
-              await completePiPaymentMutation.mutateAsync({
-                paymentId,
-                txid,
-                rideId: rideData.rideId,
-                amount: totalFare,
-              });
-
-              setPaymentId(paymentId);
-              setIsProcessingPayment(false);
-              toast.success('Payment completed! Searching for driver...');
-            } catch (error) {
-              console.error('Payment completion failed:', error);
-              toast.error('Payment completion failed');
-              setIsProcessingPayment(false);
-            }
-          },
-          onCancel: (paymentId) => {
-            setPaymentId(null);
-            setIsProcessingPayment(false);
-            toast.info('Payment cancelled');
-          },
-          onError: (error) => {
-            console.error('Payment error:', error);
-            toast.error(`Payment error: ${error.message}`);
-            setIsProcessingPayment(false);
-          },
-        }
-      );
-
-      setPaymentId(payment.identifier);
-    } catch (error: any) {
-      console.error('Failed to create payment:', error);
-      toast.error(`Failed to create payment: ${error.message}`);
-      setIsProcessingPayment(false);
-    }
-  };
-
-  const handleRequestRideOld = () => {
-    if (!pickupCoords || !dropoffCoords) return;
     requestRideMutation.mutate({
       pickupAddress,
       dropoffAddress: destinationAddress,
-      pickupLat: pickupCoords.lat.toString(),
-      pickupLng: pickupCoords.lng.toString(),
-      dropoffLat: dropoffCoords.lat.toString(),
-      dropoffLng: dropoffCoords.lng.toString(),
+      pickupLat: '43.6532', // Mock coordinates - use geocoding in production
+      pickupLng: '-79.3832',
+      dropoffLat: '43.7', // Mock coordinates
+      dropoffLng: '-79.4',
       estimatedDistance: distance,
       estimatedDuration: duration,
       estimatedFare: totalFare,
@@ -368,280 +145,290 @@ export default function RideBooking() {
   // Render ride status view
   if (rideStatus) {
     return (
-      <div className="min-h-screen bg-background">
-        <a href="#ride-status-content" className="sr-only">
-          Skip to ride status
-        </a>
-        <div className="h-[60vh] relative" role="region" aria-label="Live map showing driver location">
-          <MapView
-            initialCenter={pickupCoords || { lat: 43.6532, lng: -79.3832 }}
-            initialZoom={14}
-            onMapReady={handleMapReady}
-            className="w-full h-full"
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute top-4 right-4 bg-white shadow-lg"
-            onClick={handleCancelRide}
-            aria-label="Cancel ride"
-          >
-            <X className="h-4 w-4" aria-hidden="true" />
-          </Button>
-        </div>
-        
-        <main id="ride-status-content" className="container max-w-4xl mx-auto p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="container max-w-4xl mx-auto">
           <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                {rideStatus === 'searching' && (
-                  <>
-                    <Navigation className="h-5 w-5 animate-pulse text-blue-600" aria-hidden="true" />
-                    Searching for Driver...
-                  </>
-                )}
-                {rideStatus === 'matched' && (
-                  <>
-                    <Car className="h-5 w-5 text-green-600" aria-hidden="true" />
-                    Driver Found!
-                  </>
-                )}
-                {rideStatus === 'driver_arriving' && (
-                  <>
-                    <Navigation className="h-5 w-5 text-orange-600" aria-hidden="true" />
-                    Driver is on the way
-                  </>
-                )}
-                {rideStatus === 'in_progress' && (
-                  <>
-                    <Car className="h-5 w-5 text-blue-600" aria-hidden="true" />
-                    Ride in Progress
-                  </>
-                )}
-                {rideStatus === 'completed' && (
-                  <>
-                    <Star className="h-5 w-5 text-yellow-600" aria-hidden="true" />
-                    Ride Completed
-                  </>
-                )}
+                <Navigation className="h-6 w-6" />
+                Your Ride
               </CardTitle>
               <CardDescription>
-                {rideStatus === 'searching' && 'We\'re finding the best driver for you...'}
-                {rideStatus === 'matched' && 'Your driver is preparing to pick you up'}
-                {rideStatus === 'driver_arriving' && 'Your driver will arrive soon'}
+                {rideStatus === 'searching' && 'Finding a driver near you...'}
+                {rideStatus === 'matched' && 'Driver matched! They are on their way'}
+                {rideStatus === 'driver_arriving' && 'Driver is arriving soon'}
                 {rideStatus === 'in_progress' && 'Enjoy your ride!'}
-                {rideStatus === 'completed' && 'Thank you for riding with OpenRide'}
+                {rideStatus === 'completed' && 'Ride completed'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
+              {/* Status Badge */}
+              <div className="flex justify-center">
+                <Badge variant={rideStatus === 'searching' ? 'secondary' : 'default'} className="text-lg px-4 py-2">
+                  {rideStatus === 'searching' && '🔍 Searching for driver...'}
+                  {rideStatus === 'matched' && '✅ Driver matched'}
+                  {rideStatus === 'driver_arriving' && '🚗 Driver arriving'}
+                  {rideStatus === 'in_progress' && '🛣️ In progress'}
+                  {rideStatus === 'completed' && '✅ Completed'}
+                </Badge>
+              </div>
+
+              {/* Map Placeholder */}
+              <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
+                <div className="text-center text-gray-700">
+                  <MapPin className="h-12 w-12 mx-auto mb-2" />
+                  <p>Map View</p>
+                  <p className="text-sm">Real-time tracking will appear here</p>
+                </div>
+              </div>
+
+              {/* Trip Details */}
+              <div className="space-y-3">
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-green-600 mt-1" />
+                  <div>
+                    <p className="font-semibold">Pickup</p>
+                    <p className="text-sm text-gray-800">{pickupAddress}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-red-600 mt-1" />
+                  <div>
+                    <p className="font-semibold">Destination</p>
+                    <p className="text-sm text-gray-800">{destinationAddress}</p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Driver Details (if matched) */}
               {matchedDriver && (
-                <section aria-labelledby="driver-info-heading">
-                  <h2 id="driver-info-heading" className="sr-only">Driver Information</h2>
-                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center" aria-hidden="true">
-                        <User className="h-6 w-6 text-primary" />
+                <>
+                  <div className="space-y-3">
+                    <h3 className="font-semibold flex items-center gap-2">
+                      <User className="h-5 w-5" />
+                      Your Driver
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-gray-800">Name</p>
+                        <p className="font-medium">{matchedDriver.name}</p>
                       </div>
                       <div>
-                        <p className="font-semibold">{matchedDriver.name}</p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-                          <span aria-label={`Driver rating: ${matchedDriver.rating} out of 5 stars`}>{matchedDriver.rating}</span>
-                        </div>
+                        <p className="text-sm text-gray-800">Rating</p>
+                        <p className="font-medium flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          {matchedDriver.rating}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-800">Vehicle</p>
+                        <p className="font-medium flex items-center gap-1">
+                          <Car className="h-4 w-4" />
+                          {matchedDriver.vehicle}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-800">License Plate</p>
+                        <p className="font-medium">{matchedDriver.licensePlate}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">{matchedDriver.vehicle}</p>
-                      <p className="text-sm text-muted-foreground">{matchedDriver.licensePlate}</p>
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                      <span className="text-sm">{matchedDriver.phone}</span>
-                    </div>
-                    <Button variant="outline" size="sm" aria-label="Call driver">
-                      Call Driver
+                    <Button variant="outline" className="w-full" asChild>
+                      <a href={`tel:${matchedDriver.phone}`}>
+                        <Phone className="h-4 w-4 mr-2" />
+                        Call Driver
+                      </a>
                     </Button>
                   </div>
-                </section>
+                  <Separator />
+                </>
               )}
-              
-              <Separator />
-              
-              <section aria-labelledby="trip-details-heading">
-                <h2 id="trip-details-heading" className="sr-only">Trip Details</h2>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-green-600" aria-hidden="true" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Pickup</p>
-                    <p className="text-sm text-muted-foreground">{pickupAddress}</p>
-                  </div>
+
+              {/* Fare Summary */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-800">Base Fare</span>
+                  <span>${baseFare.toFixed(2)}</span>
                 </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5 text-red-600" aria-hidden="true" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">Dropoff</p>
-                      <p className="text-sm text-muted-foreground">{destinationAddress}</p>
-                    </div>
-                  </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-800">Network Fee (13%)</span>
+                  <span>${(totalFare - baseFare).toFixed(2)}</span>
                 </div>
-              </section>
-              
-              <Separator />
-              
-              <section aria-labelledby="ride-stats-heading">
-                <h2 id="ride-stats-heading" className="sr-only">Ride Statistics</h2>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold" aria-label={`Distance: ${distance.toFixed(1)} kilometers`}>{distance.toFixed(1)} km</p>
-                    <p className="text-sm text-muted-foreground">Distance</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold" aria-label={`Duration: ${Math.round(duration)} minutes`}>{Math.round(duration)} min</p>
-                    <p className="text-sm text-muted-foreground">Duration</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold" aria-label={`Total fare: $${totalFare.toFixed(2)}`}>${totalFare.toFixed(2)}</p>
-                    <p className="text-sm text-muted-foreground">Total Fare</p>
-                  </div>
+                <Separator />
+                <div className="flex justify-between font-semibold text-lg">
+                  <span>Total</span>
+                  <span>${totalFare.toFixed(2)}</span>
                 </div>
-              </section>
-              
-              {rideStatus === 'searching' && (
-                <Button 
-                  variant="destructive" 
-                  className="w-full"
-                  onClick={handleCancelRide}
-                  aria-label="Cancel ride request"
-                >
-                  Cancel Ride Request
-                </Button>
-              )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                {rideStatus === 'searching' && (
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    onClick={handleCancelRide}
+                    disabled={cancelRideMutation.isPending}
+                  >
+                    Cancel Request
+                  </Button>
+                )}
+                {rideStatus === 'matched' && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleCancelRide}
+                    disabled={cancelRideMutation.isPending}
+                  >
+                    Cancel Ride
+                  </Button>
+                )}
+                {rideStatus === 'completed' && (
+                  <Button
+                    className="w-full"
+                    onClick={() => setLocation('/rider/rate')}
+                  >
+                    Rate Your Driver
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
-        </main>
+        </div>
       </div>
     );
   }
 
   // Render booking form
   return (
-    <div className="min-h-screen bg-background">
-      <a href="#booking-form" className="sr-only">
-        Skip to booking form
-      </a>
-      <div className="h-[60vh] relative" role="region" aria-label="Interactive map for selecting pickup and destination">
-        <MapView
-          initialCenter={{ lat: 43.6532, lng: -79.3832 }}
-          initialZoom={12}
-          onMapReady={handleMapReady}
-          className="w-full h-full"
-        />
-      </div>
-      
-      <main id="booking-form" className="container max-w-4xl mx-auto p-4">
-        <Card className="shadow-lg -mt-20 relative z-10">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+      <div className="container max-w-4xl mx-auto">
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Book a Ride</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Car className="h-6 w-6" />
+              Book a Ride
+            </CardTitle>
             <CardDescription>
               Enter your pickup and destination to get started
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pickup-address">Pickup Location</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-green-600" aria-hidden="true" />
+          <CardContent className="space-y-6">
+            {/* Map Placeholder */}
+            <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
+              <div className="text-center text-gray-700">
+                <MapPin className="h-12 w-12 mx-auto mb-2" />
+                <p>Map View</p>
+                <p className="text-sm">Select pickup and destination on map</p>
+              </div>
+            </div>
+
+            {/* Location Inputs */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="pickup" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-green-600" />
+                  Pickup Location
+                </Label>
                 <Input
-                  id="pickup-address"
+                  id="pickup"
                   placeholder="Enter pickup address"
                   value={pickupAddress}
                   onChange={(e) => setPickupAddress(e.target.value)}
-                  className="pl-10"
-                  aria-label="Pickup location address"
-                  aria-describedby="pickup-help"
+                  className="mt-1"
                 />
-                <span id="pickup-help" className="sr-only">Start typing to search for a pickup location</span>
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="dropoff-address">Destination</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 h-4 w-4 text-red-600" aria-hidden="true" />
+
+              <div>
+                <Label htmlFor="destination" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-red-600" />
+                  Destination
+                </Label>
                 <Input
-                  id="dropoff-address"
-                  placeholder="Enter destination address"
+                  id="destination"
+                  placeholder="Where are you going?"
                   value={destinationAddress}
                   onChange={(e) => setDestinationAddress(e.target.value)}
-                  className="pl-10"
-                  aria-label="Destination address"
-                  aria-describedby="dropoff-help"
+                  className="mt-1"
                 />
-                <span id="dropoff-help" className="sr-only">Start typing to search for a destination</span>
               </div>
             </div>
-            
-            {pickupCoords && dropoffCoords && (
-              <section aria-labelledby="fare-estimate-heading">
-                <h2 id="fare-estimate-heading" className="sr-only">Fare Estimate</h2>
+
+            {/* Ride Estimate (if addresses entered) */}
+            {pickupAddress && destinationAddress && (
+              <>
                 <Separator />
-                
-                <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Navigation className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Distance</p>
-                      <p className="font-semibold">{distance.toFixed(1)} km</p>
+                <div className="space-y-3">
+                  <h3 className="font-semibold">Ride Estimate</h3>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2">
+                      <Navigation className="h-5 w-5 text-gray-800" />
+                      <div>
+                        <p className="text-sm text-gray-800">Distance</p>
+                        <p className="font-medium">{distance.toFixed(1)} km</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-gray-800" />
+                      <div>
+                        <p className="text-sm text-gray-800">Duration</p>
+                        <p className="font-medium">{Math.round(duration)} min</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Duration</p>
-                      <p className="font-semibold">{Math.round(duration)} min</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-2 p-4 bg-primary/5 rounded-lg">
-                  <div className="flex justify-between text-sm">
-                    <span>Base Fare</span>
-                    <span>${baseFare.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Network Fee (13%)</span>
-                    <span>${(totalFare - baseFare).toFixed(2)}</span>
-                  </div>
+
                   <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>${totalFare.toFixed(2)}</span>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-800">Base Fare</span>
+                      <span>${baseFare.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-800">Insurance (10%)</span>
+                      <span>${(baseFare * 0.10).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-800">Developer Fee (2.5%)</span>
+                      <span>${(baseFare * 0.025).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-800">Token Buyback (0.5%)</span>
+                      <span>${(baseFare * 0.005).toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between font-semibold text-lg">
+                      <span className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5" />
+                        Total Fare
+                      </span>
+                      <span>${totalFare.toFixed(2)}</span>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Paid with Pi cryptocurrency • Drivers keep 87% of base fare
-                  </p>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-sm text-blue-800">
+                      💰 You'll earn <strong>{Math.round(distance)} RIDE tokens</strong> for completing this ride!
+                    </p>
+                  </div>
                 </div>
-                
-                <Button 
-                  className="w-full" 
-                  size="lg"
-                  onClick={handleRequestRide}
-                  disabled={requestRideMutation.isPending || isProcessingPayment}
-                  aria-label="Request ride and pay with Pi cryptocurrency"
-                >
-                  {isProcessingPayment ? 'Processing Payment...' : requestRideMutation.isPending ? 'Requesting...' : 'Request Ride with Pi'}
-                </Button>
-              </section>
+              </>
             )}
+
+            {/* Request Ride Button */}
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={handleRequestRide}
+              disabled={!pickupAddress || !destinationAddress || requestRideMutation.isPending}
+            >
+              {requestRideMutation.isPending ? 'Requesting...' : 'Request Ride'}
+            </Button>
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 }

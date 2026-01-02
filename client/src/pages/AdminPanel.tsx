@@ -25,7 +25,7 @@ export default function AdminPanel() {
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Drivers</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Pending Drivers</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
@@ -37,7 +37,7 @@ export default function AdminPanel() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending Claims</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">Pending Claims</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
@@ -49,7 +49,7 @@ export default function AdminPanel() {
 
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-gray-600">System Status</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-800">System Status</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
@@ -66,7 +66,7 @@ export default function AdminPanel() {
           </CardHeader>
           <CardContent>
             {!pendingDrivers || pendingDrivers.length === 0 ? (
-              <p className="text-gray-600">No pending verifications</p>
+              <p className="text-gray-800">No pending verifications</p>
             ) : (
               <div className="space-y-4">
                 {pendingDrivers.map((item) => (
@@ -74,8 +74,8 @@ export default function AdminPanel() {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <p className="font-semibold text-lg">{item.user?.name || 'Unknown'}</p>
-                        <p className="text-sm text-gray-600">{item.user?.email}</p>
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="text-sm text-gray-800">{item.user?.email}</p>
+                        <p className="text-sm text-gray-800 mt-2">
                           License: {item.driver.licenseNumber}
                         </p>
                       </div>
@@ -116,7 +116,7 @@ export default function AdminPanel() {
           </CardHeader>
           <CardContent>
             {!pendingClaims || pendingClaims.length === 0 ? (
-              <p className="text-gray-600">No pending claims</p>
+              <p className="text-gray-800">No pending claims</p>
             ) : (
               <div className="space-y-4">
                 {pendingClaims.map((claim) => (
@@ -124,7 +124,7 @@ export default function AdminPanel() {
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="font-semibold">{claim.claimType}</p>
-                        <p className="text-sm text-gray-600">{claim.description}</p>
+                        <p className="text-sm text-gray-800">{claim.description}</p>
                         <p className="text-lg font-bold text-green-600 mt-2">
                           ${(claim.amountRequested / 100).toFixed(2)}
                         </p>

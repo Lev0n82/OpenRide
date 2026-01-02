@@ -67,7 +67,7 @@ export default function AdminDriverVerification() {
   
   const getStatusBadge = (status: ApplicationStatus) => {
     const variants: Record<ApplicationStatus, { variant: 'default' | 'secondary' | 'destructive' | 'outline', color: string }> = {
-      draft: { variant: 'outline', color: 'text-gray-600' },
+      draft: { variant: 'outline', color: 'text-gray-800' },
       submitted: { variant: 'secondary', color: 'text-blue-600' },
       under_review: { variant: 'secondary', color: 'text-yellow-600' },
       approved: { variant: 'default', color: 'text-green-600' },
