@@ -442,3 +442,13 @@
 - [x] Update visual regression documentation with Playwright integration
 - [ ] Get Chromatic project token from chromatic.com
 - [ ] Run initial baseline: pnpm exec chromatic --playwright
+
+## GitHub Repository Setup (In Progress)
+- [ ] Check current git status
+- [ ] Create .gitignore file
+- [ ] Initialize git repository
+- [ ] Create GitHub repository at Lev0n82/OpenRide
+- [ ] Configure git remote
+- [ ] Commit all project files
+- [ ] Push to GitHub
+- [ ] Verify repository contents
