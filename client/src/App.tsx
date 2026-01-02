@@ -15,6 +15,7 @@ import Insurance from "./pages/Insurance";
 import Tokens from "./pages/Tokens";
 import AdminPanel from "./pages/AdminPanel";
 import AdminDriverVerification from "./pages/AdminDriverVerification";
+import Accessibility from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
 
 function Router() {
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/tokens" component={Tokens} />
       <Route path="/admin" component={AdminPanel} />
       <Route path="/admin/drivers" component={AdminDriverVerification} />
+      <Route path="/accessibility" component={Accessibility} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
