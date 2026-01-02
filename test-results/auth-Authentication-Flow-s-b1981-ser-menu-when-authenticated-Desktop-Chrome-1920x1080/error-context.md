@@ -1,0 +1,165 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - link "Skip to main content" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - status [ref=e7]: Decentralized • Community-Owned • Blockchain-Powered
+        - heading "Welcome to OpenRide" [level=1] [ref=e8]
+        - paragraph [ref=e9]: The first truly decentralized rideshare and delivery platform. Drivers keep 87% of fares. Community governance. Built on Pi Network.
+    - main [ref=e10]:
+      - region "Our Services" [ref=e11]:
+        - heading "Our Services" [level=2] [ref=e12]
+        - generic [ref=e13]:
+          - article [ref=e14]:
+            - generic [ref=e15]:
+              - generic [ref=e16]:
+                - generic [ref=e17]:
+                  - img [ref=e18]
+                  - generic [ref=e22]: Most Popular
+                - generic [ref=e23]: Ride with OpenRide
+                - generic [ref=e24]: Get safe, affordable rides from verified drivers in your community
+              - generic [ref=e25]:
+                - list "Ride service benefits" [ref=e26]:
+                  - listitem [ref=e27]:
+                    - img [ref=e28]
+                    - generic [ref=e31]: 87% cheaper than Uber/Lyft
+                  - listitem [ref=e32]:
+                    - img [ref=e33]
+                    - generic [ref=e36]: Earn RIDE tokens on every trip
+                  - listitem [ref=e37]:
+                    - img [ref=e38]
+                    - generic [ref=e41]: Real-time tracking & safety features
+                  - listitem [ref=e42]:
+                    - img [ref=e43]
+                    - generic [ref=e46]: Pay with Pi cryptocurrency
+                - button "Sign in to book a ride" [ref=e48] [cursor=pointer]: Sign In to Ride
+          - article [ref=e49]:
+            - generic [ref=e50]:
+              - generic [ref=e51]:
+                - generic [ref=e52]:
+                  - img [ref=e53]
+                  - generic [ref=e57]: New
+                - generic [ref=e58]: Deliver with OpenRide
+                - generic [ref=e59]: Send packages locally with fast, affordable delivery service
+              - generic [ref=e60]:
+                - list "Delivery service benefits" [ref=e61]:
+                  - listitem [ref=e62]:
+                    - img [ref=e63]
+                    - generic [ref=e66]: Same-day local delivery
+                  - listitem [ref=e67]:
+                    - img [ref=e68]
+                    - generic [ref=e71]: Real-time package tracking
+                  - listitem [ref=e72]:
+                    - img [ref=e73]
+                    - generic [ref=e76]: Proof of delivery with photos
+                  - listitem [ref=e77]:
+                    - img [ref=e78]
+                    - generic [ref=e81]: Earn RIDE tokens per delivery
+                - button "Sign in to send a package" [ref=e83] [cursor=pointer]: Sign In to Deliver
+          - article [ref=e84]:
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - generic [ref=e87]:
+                  - img [ref=e88]
+                  - generic [ref=e93]: Pro
+                - generic [ref=e94]: Courier with OpenRide
+                - generic [ref=e95]: Professional courier services for businesses and bulk deliveries
+              - generic [ref=e96]:
+                - list "Courier service benefits" [ref=e97]:
+                  - listitem [ref=e98]:
+                    - img [ref=e99]
+                    - generic [ref=e102]: Multi-stop route optimization
+                  - listitem [ref=e103]:
+                    - img [ref=e104]
+                    - generic [ref=e107]: Scheduled pickups & deliveries
+                  - listitem [ref=e108]:
+                    - img [ref=e109]
+                    - generic [ref=e112]: Business accounts & invoicing
+                  - listitem [ref=e113]:
+                    - img [ref=e114]
+                    - generic [ref=e117]: Priority driver matching
+                - button "Sign in to book courier service" [ref=e119] [cursor=pointer]: Sign In for Courier
+      - region "Become a Driver" [ref=e120]:
+        - generic [ref=e123]:
+          - generic [ref=e124]:
+            - heading "Become a Driver" [level=2] [ref=e125]
+            - paragraph [ref=e126]: Earn 87% of every fare. Set your own schedule. Get paid in Pi cryptocurrency. Join the decentralized revolution.
+            - list "Driver benefits" [ref=e127]:
+              - listitem [ref=e128]:
+                - img [ref=e129]
+                - generic [ref=e132]: Only 13% fees
+              - listitem [ref=e133]:
+                - img [ref=e134]
+                - generic [ref=e137]: Flexible hours
+              - listitem [ref=e138]:
+                - img [ref=e139]
+                - generic [ref=e144]: Earn RIDE tokens
+              - listitem [ref=e145]:
+                - img [ref=e146]
+                - generic [ref=e148]: Full insurance
+          - navigation "Driver application options" [ref=e149]:
+            - button "Apply to become a driver" [ref=e150] [cursor=pointer]:
+              - img
+              - text: Apply to Drive
+            - button "Apply to become a delivery driver" [ref=e151] [cursor=pointer]:
+              - img
+              - text: Apply for Delivery
+            - button "Apply to become a courier driver" [ref=e152] [cursor=pointer]:
+              - img
+              - text: Apply for Courier
+      - region "Why Choose OpenRide?" [ref=e153]:
+        - heading "Why Choose OpenRide?" [level=2] [ref=e154]
+        - generic [ref=e155]:
+          - article [ref=e156]:
+            - img [ref=e158]
+            - heading "Community Owned" [level=3] [ref=e163]
+            - paragraph [ref=e164]: Governed by riders and drivers through DAO voting. Your voice matters.
+          - article [ref=e165]:
+            - img [ref=e167]
+            - heading "Earn RIDE Tokens" [level=3] [ref=e172]
+            - paragraph [ref=e173]: Every trip earns you governance tokens. More rides = more voting power.
+          - article [ref=e174]:
+            - img [ref=e176]
+            - heading "Fully Insured" [level=3] [ref=e178]
+            - paragraph [ref=e179]: Community insurance pool covers all rides. No hidden fees or surprises.
+          - article [ref=e180]:
+            - img [ref=e182]
+            - heading "Verified Drivers" [level=3] [ref=e184]
+            - paragraph [ref=e185]: All drivers verified through Pi Network KYC. Safety first, always.
+      - region "Community Governance" [ref=e186]:
+        - generic [ref=e189]:
+          - generic [ref=e190]:
+            - heading "Community Governance" [level=2] [ref=e191]
+            - paragraph [ref=e192]: OpenRide is governed by its community through a Decentralized Autonomous Organization (DAO). Token holders vote on platform decisions, fee structures, and expansion plans.
+            - list "DAO features" [ref=e193]:
+              - listitem [ref=e194]:
+                - img [ref=e195]
+                - generic [ref=e198]:
+                  - strong [ref=e199]: Democratic Voting
+                  - text: One token = one vote on all proposals
+              - listitem [ref=e200]:
+                - img [ref=e201]
+                - generic [ref=e206]:
+                  - strong [ref=e207]: Treasury Management
+                  - text: Community controls platform funds
+              - listitem [ref=e208]:
+                - img [ref=e209]
+                - generic [ref=e212]:
+                  - strong [ref=e213]: Expansion Decisions
+                  - text: Vote on new cities and features
+          - generic [ref=e214]:
+            - button "View active governance proposals" [ref=e215] [cursor=pointer]:
+              - img
+              - text: View Active Proposals
+            - button "Create a new governance proposal" [ref=e216] [cursor=pointer]: Create Proposal
+    - contentinfo [ref=e217]:
+      - generic [ref=e218]:
+        - paragraph [ref=e219]: © 2025 OpenRide. Built on Pi Network. Powered by the community.
+        - navigation "Footer navigation" [ref=e220]:
+          - link "Accessibility Statement" [ref=e221] [cursor=pointer]:
+            - /url: /accessibility
+```

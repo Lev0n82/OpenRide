@@ -398,7 +398,7 @@ export default function DriverApplication() {
                   currentStep === step
                     ? 'border-primary bg-primary text-primary-foreground'
                     : isStepComplete(step)
-                    ? 'border-green-600 bg-green-600 text-white'
+                    ? 'border-green-800 bg-green-800 text-white'
                     : 'border-gray-300 bg-white text-gray-400'
                 }`}
               >
@@ -413,7 +413,7 @@ export default function DriverApplication() {
             {index < 4 && (
               <div
                 className={`h-0.5 w-12 ${
-                  isStepComplete(step) ? 'bg-green-600' : 'bg-gray-300'
+                  isStepComplete(step) ? 'bg-green-800' : 'bg-gray-300'
                 }`}
               />
             )}

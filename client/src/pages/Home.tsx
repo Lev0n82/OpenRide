@@ -148,7 +148,7 @@ export default function Home() {
                     <div className="pt-4">
                       {isAuthenticated ? (
                         <Button 
-                          className="w-full bg-green-600 hover:bg-green-700" 
+                          className="w-full bg-green-800 hover:bg-green-900" 
                           size="lg"
                           onClick={() => setLocation('/delivery-booking')}
                           aria-label="Send a package now"
@@ -158,7 +158,7 @@ export default function Home() {
                         </Button>
                       ) : (
                         <Button 
-                          className="w-full bg-green-600 hover:bg-green-700" 
+                          className="w-full bg-green-800 hover:bg-green-900" 
                           size="lg"
                           onClick={() => window.location.href = getLoginUrl()}
                           aria-label="Sign in to send a package"
@@ -207,7 +207,7 @@ export default function Home() {
                     <div className="pt-4">
                       {isAuthenticated ? (
                         <Button 
-                          className="w-full bg-purple-600 hover:bg-purple-700" 
+                          className="w-full bg-purple-800 hover:bg-purple-900" 
                           size="lg"
                           onClick={() => setLocation('/delivery-booking?type=courier')}
                           aria-label="Book courier service now"
@@ -217,7 +217,7 @@ export default function Home() {
                         </Button>
                       ) : (
                         <Button 
-                          className="w-full bg-purple-600 hover:bg-purple-700" 
+                          className="w-full bg-purple-800 hover:bg-purple-900" 
                           size="lg"
                           onClick={() => window.location.href = getLoginUrl()}
                           aria-label="Sign in to book courier service"
