@@ -11,6 +11,7 @@ import { z } from "zod";
 import {
   createDriverProfile,
   getDriverProfileByUserId,
+  getDriverProfileById,
   updateDriverProfile,
   getPendingDriverVerifications,
   updateDriverAvailability,
@@ -457,6 +458,58 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    // Complete a ride with rating and tip
+    complete: protectedProcedure
+      .input(z.object({
+        rideId: z.number(),
+        rating: z.number().min(1).max(5),
+        tip: z.number().min(0).default(0),
+        feedback: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const ride = await getRideById(input.rideId);
+        if (!ride || ride.status !== 'completed') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Ride not completed yet' });
+        }
+        
+        if (ride.riderId !== ctx.user.id) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Not authorized' });
+        }
+        
+        if (!ride.driverId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'No driver to rate' });
+        }
+        
+        // Create rating
+        await createRating({
+          rideId: input.rideId,
+          raterId: ctx.user.id,
+          ratedId: ride.driverId,
+          ratingType: 'rider_to_driver',
+          rating: input.rating,
+          comment: input.feedback,
+        });
+        
+        // Update driver average rating
+        const driverProfile = await getDriverProfileById(ride.driverId);
+        if (driverProfile) {
+          const allRatings = await getRatingsByUserId(ride.driverId);
+          const avgRating = Math.round(
+            allRatings.reduce((sum: number, r: any) => sum + r.rating, 0) / allRatings.length * 100
+          );
+          await updateDriverProfile(ride.driverId, { averageRating: avgRating });
+          
+          // Add tip to driver earnings if provided
+          if (input.tip > 0) {
+            await updateDriverProfile(ride.driverId, {
+              totalEarnings: driverProfile.totalEarnings + input.tip,
+            });
+          }
+        }
+        
+        return { success: true };
+      }),
+    
     // Rate a ride
     rate: protectedProcedure
       .input(z.object({

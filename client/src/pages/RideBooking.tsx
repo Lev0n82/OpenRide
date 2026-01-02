@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { usePiPayment } from '@/hooks/usePiPayment';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MapView } from '@/components/Map';
 
 type RideStatus = 'searching' | 'matched' | 'driver_arriving' | 'in_progress' | 'completed';
 
@@ -33,6 +34,13 @@ export default function RideBooking() {
   const [matchedDriver, setMatchedDriver] = useState<any>(null);
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
   
+  // Map state
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
+  const driverMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const [pickupCoords, setPickupCoords] = useState<{lat: number, lng: number} | null>(null);
+  const [destCoords, setDestCoords] = useState<{lat: number, lng: number} | null>(null);
+  
   // Pi payment hook
   const { createPayment, isProcessing: isPaymentProcessing } = usePiPayment();
   
@@ -40,6 +48,33 @@ export default function RideBooking() {
   const { data: activeRideData } = trpc.ride.getActive.useQuery(undefined, {
     refetchInterval: rideStatus ? 3000 : false, // Poll every 3s if ride is active
   });
+  
+  // Update driver marker position when ride is active
+  useEffect(() => {
+    if (!activeRideData || !mapRef.current) return;
+    
+    const ride = activeRideData.ride;
+    if (ride.status === 'driver_arriving' || ride.status === 'in_progress') {
+      // Simulate driver location (in production, this would come from real GPS)
+      const driverLat = parseFloat(ride.pickupLat) + (Math.random() - 0.5) * 0.01;
+      const driverLng = parseFloat(ride.pickupLng) + (Math.random() - 0.5) * 0.01;
+      
+      if (!driverMarkerRef.current) {
+        // Create driver marker
+        driverMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
+          map: mapRef.current,
+          position: { lat: driverLat, lng: driverLng },
+          title: 'Driver Location',
+        });
+      } else {
+        // Update existing marker
+        driverMarkerRef.current.position = { lat: driverLat, lng: driverLng };
+      }
+      
+      // Center map on driver
+      mapRef.current.panTo({ lat: driverLat, lng: driverLng });
+    }
+  }, [activeRideData]);
 
   // Request ride mutation
   const requestRideMutation = trpc.ride.request.useMutation({
@@ -123,9 +158,78 @@ export default function RideBooking() {
     }
   }, [activeRideData]);
 
+  // Calculate route when addresses change
+  useEffect(() => {
+    if (!pickupAddress || !destinationAddress || !mapRef.current) return;
+    
+    const calculateRoute = async () => {
+      try {
+        const directionsService = new google.maps.DirectionsService();
+        directionsService.route(
+          {
+            origin: pickupAddress,
+            destination: destinationAddress,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (result, status) => {
+            if (status !== 'OK' || !result || !result.routes[0]) {
+              toast.error('Could not calculate route. Please check addresses.');
+              return;
+            }
+          // Display route on map
+          directionsRendererRef.current?.setDirections(result);
+          
+          const route = result.routes[0];
+          const leg = route.legs[0];
+          
+          // Extract distance and duration
+          const distanceKm = leg.distance?.value ? leg.distance.value / 1000 : 0;
+          const durationMin = leg.duration?.value ? Math.ceil(leg.duration.value / 60) : 0;
+          
+          setDistance(distanceKm);
+          setDuration(durationMin);
+          
+          // Save coordinates
+          if (leg.start_location) {
+            setPickupCoords({ lat: leg.start_location.lat(), lng: leg.start_location.lng() });
+          }
+          if (leg.end_location) {
+            setDestCoords({ lat: leg.end_location.lat(), lng: leg.end_location.lng() });
+          }
+          
+          // Calculate fare
+          const baseFareCalc = 250; // $2.50 base
+          const perKm = 100; // $1.00 per km
+          const perMin = 25; // $0.25 per minute
+          
+          const distanceFare = distanceKm * perKm;
+          const timeFare = durationMin * perMin;
+          const subtotal = baseFareCalc + distanceFare + timeFare;
+          const total = Math.round(subtotal * 1.13); // Add 13% fee
+          
+          setBaseFare(Math.round(subtotal));
+          setTotalFare(total);
+          }
+        );
+      } catch (error) {
+        console.error('Route calculation failed:', error);
+        toast.error('Could not calculate route. Please check addresses.');
+      }
+    };
+    
+    // Debounce route calculation
+    const timer = setTimeout(calculateRoute, 1000);
+    return () => clearTimeout(timer);
+  }, [pickupAddress, destinationAddress]);
+  
   const handleRequestRide = async () => {
     if (!pickupAddress || !destinationAddress) {
       toast.error('Please enter both pickup and destination addresses');
+      return;
+    }
+    
+    if (!pickupCoords || !destCoords) {
+      toast.error('Calculating route... Please wait');
       return;
     }
     
@@ -352,13 +456,18 @@ export default function RideBooking() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Map Placeholder */}
-            <div className="bg-gray-200 rounded-lg h-64 flex items-center justify-center">
-              <div className="text-center text-gray-700">
-                <MapPin className="h-12 w-12 mx-auto mb-2" />
-                <p>Map View</p>
-                <p className="text-sm">Select pickup and destination on map</p>
-              </div>
+            {/* Google Maps */}
+            <div className="rounded-lg overflow-hidden border border-gray-300">
+              <MapView
+                initialCenter={{ lat: 43.6532, lng: -79.3832 }} // Toronto
+                initialZoom={12}
+                onMapReady={(map) => {
+                  mapRef.current = map;
+                  // Initialize directions renderer
+                  directionsRendererRef.current = new google.maps.DirectionsRenderer({ map });
+                }}
+                className="h-64 w-full"
+              />
             </div>
 
             {/* Location Inputs */}
