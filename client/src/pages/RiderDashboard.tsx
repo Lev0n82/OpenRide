@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
-import { MapPin, Clock, DollarSign } from "lucide-react";
+import { MapPin, Clock, DollarSign, Package, Car } from "lucide-react";
+import { Link } from "wouter";
 import { toast } from "sonner";
 
 export default function RiderDashboard() {
@@ -20,6 +21,35 @@ export default function RiderDashboard() {
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="container mx-auto">
         <h1 className="text-4xl font-bold mb-8">Rider Dashboard</h1>
+        
+        {/* Service Selection */}
+        <div className="grid md:grid-cols-2 gap-4 mb-8">
+          <Link href="/ride-booking">
+            <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-blue-500">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Car className="h-8 w-8 text-blue-600" />
+                  <div>
+                    <CardTitle>Request a Ride</CardTitle>
+                    <CardDescription>Get picked up and dropped off</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
+          </Link>
+          
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-gray-300 opacity-75">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <Package className="h-8 w-8 text-purple-600" />
+                <div>
+                  <CardTitle>Send a Package</CardTitle>
+                  <CardDescription>Courier and delivery service (Coming Soon)</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <Card>

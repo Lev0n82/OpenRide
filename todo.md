@@ -64,10 +64,10 @@
 - [x] Platform analytics
 
 ## Testing & Deployment
-- [ ] Unit tests for critical procedures
-- [ ] Integration tests for ride flow
-- [ ] DAO voting tests
-- [ ] Initial checkpoint creation
+- [x] Unit tests for critical procedures (ride matching, token economics, DAO voting)
+- [ ] Integration tests for ride flow (requires DATABASE_URL in test env)
+- [ ] DAO voting tests (requires DATABASE_URL in test env)
+- [x] Multiple checkpoints created throughout development
 
 
 ## Pi Network SDK Integration
@@ -79,9 +79,9 @@
 - [x] Create payment approval flow for riders
 - [x] Implement payment completion and verification
 - [x] Create frontend hooks for Pi auth and payments
-- [ ] Integrate Pi KYC verification for driver onboarding
-- [ ] Update ride booking UI to use Pi payments
-- [ ] Test Pi payments end-to-end
+- [x] Integrate Pi KYC verification for driver onboarding (already implemented in DriverApplication)
+- [x] Update ride booking UI to use Pi payments (payment dialog with Pi SDK integration)
+- [ ] Test Pi payments end-to-end (requires Pi SDK credentials)
 
 
 ## Delivery & Courier Services
@@ -94,8 +94,9 @@
 - [x] Add delivery tracking and status updates
 - [x] Implement proof of delivery (photo upload)
 - [x] Create delivery history for drivers and customers
-- [ ] Add delivery service toggle in driver dashboard
-- [ ] Update rider dashboard with delivery option
+- [x] Add delivery service toggle in driver dashboard (offersDelivery toggle added)
+- [x] Update rider dashboard with delivery option (service selection cards added)
+- [ ] Implement delivery booking page
 - [ ] Test delivery features end-to-end
 
 

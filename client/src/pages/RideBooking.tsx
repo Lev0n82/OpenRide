@@ -6,9 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { MapPin, Navigation, DollarSign, Clock, User, Car, Phone, Star } from 'lucide-react';
+import { MapPin, Navigation, DollarSign, Clock, User, Car, Phone, Star, Wallet } from 'lucide-react';
+import { usePiPayment } from '@/hooks/usePiPayment';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type RideStatus = 'searching' | 'matched' | 'driver_arriving' | 'in_progress' | 'completed';
 
@@ -29,6 +31,10 @@ export default function RideBooking() {
   const [rideStatus, setRideStatus] = useState<RideStatus | null>(null);
   const [currentRideId, setCurrentRideId] = useState<number | null>(null);
   const [matchedDriver, setMatchedDriver] = useState<any>(null);
+  const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
+  
+  // Pi payment hook
+  const { createPayment, isProcessing: isPaymentProcessing } = usePiPayment();
   
   // Check for active ride
   const { data: activeRideData } = trpc.ride.getActive.useQuery(undefined, {
@@ -117,23 +123,54 @@ export default function RideBooking() {
     }
   }, [activeRideData]);
 
-  const handleRequestRide = () => {
+  const handleRequestRide = async () => {
     if (!pickupAddress || !destinationAddress) {
       toast.error('Please enter both pickup and destination addresses');
       return;
     }
-
-    requestRideMutation.mutate({
-      pickupAddress,
-      dropoffAddress: destinationAddress,
-      pickupLat: '43.6532', // Mock coordinates - use geocoding in production
-      pickupLng: '-79.3832',
-      dropoffLat: '43.7', // Mock coordinates
-      dropoffLng: '-79.4',
-      estimatedDistance: distance,
-      estimatedDuration: duration,
-      estimatedFare: totalFare,
-    });
+    
+    // Show payment confirmation
+    setShowPaymentConfirm(true);
+  };
+  
+  const handleConfirmPayment = async () => {
+    try {
+      // Create Pi payment
+      const payment = await createPayment(
+        totalFare / 100, // Convert cents to Pi
+        `OpenRide: ${pickupAddress} → ${destinationAddress}`,
+        {
+          type: 'ride',
+          pickupAddress,
+          destinationAddress,
+        }
+      );
+      
+      if (!payment) {
+        toast.error('Failed to create payment');
+        return;
+      }
+      
+      // Request ride after payment created
+      requestRideMutation.mutate({
+        pickupAddress,
+        dropoffAddress: destinationAddress,
+        pickupLat: '43.6532', // Mock coordinates - use geocoding in production
+        pickupLng: '-79.3832',
+        dropoffLat: '43.7', // Mock coordinates
+        dropoffLng: '-79.4',
+        estimatedDistance: distance,
+        estimatedDuration: duration,
+        estimatedFare: totalFare,
+        // paymentId: payment.identifier, // TODO: Add paymentId to backend schema
+      });
+      
+      setShowPaymentConfirm(false);
+      toast.success('Payment approved! Requesting ride...');
+    } catch (error: any) {
+      toast.error(`Payment failed: ${error.message}`);
+      setShowPaymentConfirm(false);
+    }
   };
 
   const handleCancelRide = () => {
@@ -428,6 +465,79 @@ export default function RideBooking() {
             </Button>
           </CardContent>
         </Card>
+        
+        {/* Pi Payment Confirmation Dialog */}
+        <Dialog open={showPaymentConfirm} onOpenChange={setShowPaymentConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-primary" />
+                Confirm Payment with Pi
+              </DialogTitle>
+              <DialogDescription>
+                Review your ride details and confirm payment
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-green-600 mt-1" />
+                  <div>
+                    <p className="text-sm font-medium">Pickup</p>
+                    <p className="text-sm text-muted-foreground">{pickupAddress}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <MapPin className="h-4 w-4 text-red-600 mt-1" />
+                  <div>
+                    <p className="text-sm font-medium">Destination</p>
+                    <p className="text-sm text-muted-foreground">{destinationAddress}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Distance</span>
+                  <span className="font-medium">{distance.toFixed(1)} km</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Duration</span>
+                  <span className="font-medium">{duration} min</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold">Total Fare</span>
+                  <span className="font-bold text-lg">{(totalFare / 100).toFixed(2)} Pi</span>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-sm text-blue-800">
+                  💰 You'll earn <strong>{Math.round(distance)} RIDE tokens</strong> for completing this ride!
+                </p>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowPaymentConfirm(false)}
+                disabled={isPaymentProcessing}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleConfirmPayment}
+                disabled={isPaymentProcessing}
+              >
+                {isPaymentProcessing ? 'Processing...' : 'Pay with Pi'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

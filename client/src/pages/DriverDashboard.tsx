@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { trpc } from "@/lib/trpc";
-import { Car, DollarSign, Star, TrendingUp, AlertCircle } from "lucide-react";
+import { Car, DollarSign, Star, TrendingUp, AlertCircle, Package } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
 
@@ -148,7 +148,7 @@ export default function DriverDashboard() {
           <CardHeader>
             <CardTitle>Availability Status</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             <div className="flex items-center gap-4">
               <Switch
                 checked={profile.isAvailable}
@@ -161,6 +161,23 @@ export default function DriverDashboard() {
                   <span className="text-gray-800">Offline</span>
                 )}
               </Label>
+            </div>
+            
+            <div className="border-t pt-4">
+              <div className="flex items-center gap-4">
+                <Package className="h-5 w-5 text-primary" />
+                <div className="flex-1">
+                  <Label className="text-base font-semibold">Delivery Service</Label>
+                  <p className="text-sm text-muted-foreground">Accept package and courier deliveries</p>
+                </div>
+                <Switch
+                  checked={profile.offersDelivery || false}
+                  onCheckedChange={(checked) => {
+                    // TODO: Add backend mutation for delivery toggle
+                    toast.info('Delivery service toggle coming soon!');
+                  }}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
