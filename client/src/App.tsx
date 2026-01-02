@@ -1,4 +1,4 @@
-import { Toaster } from "@/components/ui/sonner";
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -42,7 +42,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
-          <Toaster />
+          <PWAInstallPrompt />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
